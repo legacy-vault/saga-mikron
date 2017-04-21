@@ -1,0 +1,525 @@
+<html>
+<head>
+<title>%s</title>
+<meta charset='utf-8'>
+<script language='JavaScript'>
+
+//------------------------------------------------------------------------------
+
+// Parameters from Server
+var td_head_text, path_index, get_postfix, send_postfix, path_activeList, path_logout;
+var protocol, code_NoNews, code_BadPOSTdata, code_BadRequest, code_NotLoggedIn;
+var code_EmptyMessage, code_messageSent, code_msgTooLong, redirectDelay;
+var sendToGetDelay, msgUpdateInterval, userUpdateInterval, msgMaxSize;
+var param_req_mid, param_req_ts, param_unknownVal;
+
+// Local variables
+var error_POSTdata, error_BadRequest, error_EmptyMessage, error_NotLoggedIn;
+var error_LongMessage, chat, td_head, div_messages, div_users, input_msg;
+var userList, col_userName, row_idPrefix, bg_dark, mid, ts;
+var loop_msgUpdates, loop_userUpdates, newUserList, newMessage;
+
+//------------------------------------------------------------------------------
+
+function init_1() {
+
+  td_head_text = '%s';
+  path_index = '%s';
+  get_postfix = '%s';
+  send_postfix = '%s';
+  path_activeList = '%s';
+  path_logout = '%s';
+  protocol = '%s';
+  code_NoNews = '%s';
+  code_BadPOSTdata = '%s';
+  code_BadRequest = '%s';
+  code_NotLoggedIn = '%s';
+  code_EmptyMessage = '%s';
+  code_messageSent = '%s';
+  code_msgTooLong = '%s';
+  redirectDelay = '%s';
+  sendToGetDelay = '%s';
+  msgUpdateInterval = '%s';
+  userUpdateInterval = '%s';
+  msgMaxSize = eval('%d');
+  param_req_mid = '%s';
+  param_req_ts = '%s';
+  param_unknownVal = '%s';
+  
+}
+
+//#//
+
+function init_2() {
+
+  error_POSTdata = 'Error in POST Data!';
+  error_BadRequest = 'Error! Bad Request.';
+  error_EmptyMessage = 'Message can not be empty!';
+  error_NotLoggedIn = 'You are not logged in!';
+  error_LongMessage = 'Message is too long!';
+  chat = document.getElementById('chat');
+  td_head = document.getElementById('td_head');
+  td_head.innerHTML = td_head_text;
+  div_messages = document.getElementById('messages');
+  div_users = document.getElementById('users');
+  input_msg = document.getElementById('input_msg');
+  userList = document.getElementById('userList');
+  col_userName = document.getElementById('col_userName');
+  row_idPrefix = 'mid_';
+  bg_dark = true;
+  mid = param_unknownVal;
+  ts = param_unknownVal;
+  
+  set_styles();
+  get_msgUpdate();
+  get_userUpdate();
+  loop_msgUpdates_start();
+  loop_userUpdates_start();
+}
+
+//------------------------------------------------------------------------------
+
+function init() {
+
+  init_1();
+  init_2();
+}
+
+//------------------------------------------------------------------------------
+
+function loop_msgUpdates_start() {
+
+  loop_msgUpdates = setInterval(get_msgUpdate, msgUpdateInterval * 1000);
+}
+
+//------------------------------------------------------------------------------
+
+function loop_userUpdates_start() {
+
+  loop_userUpdates = setInterval(get_userUpdate, userUpdateInterval * 1000);
+}
+
+//------------------------------------------------------------------------------
+
+function get_msgUpdate() {
+
+  var xhttp = new XMLHttpRequest();
+  var xurl = protocol + location.host + get_postfix;
+  var xreq = param_req_mid + '=' + mid + '&' + param_req_ts + '=' + ts;
+  var reply;
+  
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+       reply = this.responseText;
+       if (reply == code_NoNews)
+       {
+	return;
+       } 
+       else if (reply == code_NotLoggedIn)
+       {
+	alert(error_NotLoggedIn);
+	redirect();
+	return;
+       } 
+       else if (reply == code_BadPOSTdata)
+       {
+	alert(error_POSTdata);
+	return;
+       } 
+       else if (reply == code_BadRequest)
+       {
+	alert(error_BadRequest);
+	return;
+       }
+       newMessage = JSON.parse(reply);
+       mid = newMessage['x'][param_req_mid];
+       ts = newMessage['x'][param_req_ts];
+       addMessage();
+    }
+  };
+  xhttp.open('POST', xurl, true);
+  xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+  xhttp.send(xreq);
+}
+
+//------------------------------------------------------------------------------
+
+function get_userUpdate() {
+
+  var xhttp = new XMLHttpRequest();
+  var xurl = protocol + location.host + path_activeList;
+  var xreq = '';
+  var reply;
+  
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+       reply = this.responseText;
+       if (reply == code_NotLoggedIn)
+       {
+	alert(error_NotLoggedIn);
+	redirect();
+	return;
+       } 
+
+       newUserList = JSON.parse(reply);
+       userList_update();
+    }
+  };
+  xhttp.open('GET', xurl, true);
+  xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+  xhttp.send(xreq);
+}
+
+//------------------------------------------------------------------------------
+
+function redirect() {
+  
+  setTimeout(redirect_to_index, redirectDelay * 1000);
+}
+
+//------------------------------------------------------------------------------
+
+function redirect_to_index() {
+
+  window.location.assign(protocol + location.host + path_index);
+}
+
+//------------------------------------------------------------------------------
+
+function redirect_to_logout() {
+
+  window.location.assign(protocol + location.host + path_logout);
+}
+
+//------------------------------------------------------------------------------
+
+function addMessage() {
+  
+  var msgCount = Object.keys(newMessage['messages']).length;
+  var i, rowsCount, row, cell;
+  
+  rowsCount = chat.rows.length;  
+  for (i = 0; i < msgCount; i++) {
+    row = chat.insertRow(rowsCount);
+    row.id = row_idPrefix + newMessage['messages'][i]['mid'];
+    row.style.verticalAlign = 'top';
+    if (bg_dark) {
+      row.style.background = '#d9f2d9';
+    } else {
+      row.style.background = '#ecf8ec';
+    }
+    cell = row.insertCell(0);
+    cell.innerHTML =	'' + decodeURIComponent(escape(window.atob( newMessage['messages'][i]['atr'] ))) + 
+			'<br>[' + newMessage['messages'][i]['tim'] + ']'; // base64 => UTF-8
+    cell.style.fontSize = '12px';
+    cell.style.color = '#308230';
+    cell.style.paddingLeft = '5px';
+    cell.style.paddingRight = '5px';
+    cell.style.paddingTop = '2px';
+    cell.style.paddingBottom = '2px';
+    cell.style.textAlign = 'right';
+    cell.style.wordBreak = "break-all";
+    cell = row.insertCell(1);
+    cell = row.insertCell(2);
+    cell.innerHTML = decodeURIComponent(escape(window.atob( newMessage['messages'][i]['txt'] ))); // base64 => UTF-8
+    cell.style.fontSize = '14px';
+    cell.style.color = '#153815';
+    cell.style.paddingLeft = '5px';
+    cell.style.paddingRight = '5px';
+    cell.style.paddingTop = '2px';
+    cell.style.paddingBottom = '2px';
+    cell.style.textAlign = 'left';
+    cell.style.wordBreak = "break-all";
+    rowsCount++;
+    bg_dark = !bg_dark;
+  } 
+  scroll_messages();
+}
+
+//------------------------------------------------------------------------------
+
+function scroll_messages() {
+
+  div_messages.scrollTop = div_messages.scrollHeight - div_messages.clientHeight;
+}
+
+//------------------------------------------------------------------------------
+
+function userList_update() {
+
+  var userCount = Object.keys(newUserList['names']).length;
+  var rowsCount, row, cell, j;
+  var a = new Array();
+  var name;
+  
+  // Clear User List
+  rowsCount = userList.rows.length;
+  j = rowsCount - 1;
+  for (i = 0; i < j; i++) {
+    userList.deleteRow(0); // First
+  }
+  
+  // Array of User Names, sorted alphabetically
+  for (i = 0; i < userCount; i++) {
+    name = decodeURIComponent(escape(window.atob( newUserList['names'][i] ))); // base64 => UTF-8
+    a.push( name );
+    //a.push( newUserList['names'][i] );
+  }
+  a.sort();
+  
+  // Create a new User List
+  rowsCount = userList.rows.length;
+  j = rowsCount - 1;
+  for (i = 0; i < userCount; i++) {
+    row = userList.insertRow(j); // Pre-Last
+    cell = row.insertCell(0);
+    cell.innerHTML = '<a class=\'user\' onClick=\'clickUser(this)\'>' + a[i] + '</a>';
+    cell.style.fontSize = '12px';
+    cell.style.color = '#003311';
+    cell.style.verticalAlign = 'top';
+    cell.style.paddingLeft = '5px';
+    cell.style.paddingRight = '5px';
+    cell.style.paddingTop = '2px';
+    cell.style.paddingBottom = '2px';
+    cell.style.wordBreak = "break-all";
+    cell.className = 'user';
+    j++;
+  }
+}
+
+//------------------------------------------------------------------------------
+
+function btn_exitClick() {
+
+  redirect_to_logout();
+}
+
+//------------------------------------------------------------------------------
+
+function btn_send() {
+  
+  send_message();
+}
+
+//------------------------------------------------------------------------------
+
+function clickUser(obj) {
+
+  input_msg.value += obj.innerHTML + ', ';
+}
+
+//------------------------------------------------------------------------------
+
+function send_message() {
+
+  var msg = input_msg.value;
+  var xhttp = new XMLHttpRequest();
+  var xurl = protocol + location.host + send_postfix;
+  var xreq = msg.length + ' ' + msg;
+  var reply;
+  
+  if (msg == '') {
+    return;
+  }
+  
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+       reply = this.responseText;
+       if (reply == code_NotLoggedIn) 
+       {
+	alert(error_NotLoggedIn);
+	redirect();
+       } 
+       else if (reply == code_BadPOSTdata) 
+       {
+	alert(error_POSTdata);
+	return;
+       }
+       else if (reply == code_EmptyMessage) 
+       {
+	alert(error_EmptyMessage);
+	return;
+       }
+       else if (reply == code_msgTooLong) 
+       {
+	alert(error_LongMessage);
+	return;
+       }
+       else if (reply == code_messageSent) 
+       {
+	input_msg.value = '';
+	get_msgUpdate_delayed();
+       }
+    }
+  };
+  xhttp.open('POST', xurl, true);
+  xhttp.setRequestHeader('Content-type', 'text/plain; charset=utf-8');
+  xhttp.send(xreq);
+}
+
+//------------------------------------------------------------------------------
+
+function get_msgUpdate_delayed() {
+
+  clearInterval(loop_msgUpdates);
+  setTimeout(get_msgUpdate, sendToGetDelay * 1000);
+  setTimeout(loop_msgUpdates_start, sendToGetDelay * 1000);
+}
+
+//------------------------------------------------------------------------------
+
+function set_styles() {
+  
+  // Reminder: see also resize_elements() !
+  var y1 = (document.body.clientHeight - 90) + 'px'; // 30+50+(2*5), 
+  
+  div_messages.style.overflowY = 'scroll';
+  div_messages.style.overflowX = 'auto';
+  div_messages.style.width = '100%';
+  div_messages.style.height = y1;
+  
+  div_users.style.overflowY = 'scroll';
+  div_users.style.overflowX = 'auto';
+  div_users.style.width = '100%';
+  div_users.style.height = y1;
+  
+  col_userName.style.width = '25%';
+  col_userName.style.maxWidth = '25%';
+  
+  input_msg.maxLength = msgMaxSize / 2; // msgMaxSize is in Bytes. Non-latin symbols take 2 bytes instead of 1.
+}
+
+//------------------------------------------------------------------------------
+
+function resize_elements() {
+
+  // Reminder: see also set_styles() !
+  div_messages.style.height = (document.body.clientHeight - 90) + 'px';
+  div_users.style.height = (document.body.clientHeight - 90) + 'px';
+  col_userName.style.width = '25%';
+  col_userName.style.maxWidth = '25%';
+}
+
+//------------------------------------------------------------------------------
+
+</script>
+
+<style>
+td.head {
+  background-color: #009933;
+  color: #ffffff;
+  padding-left: 15px;
+  padding-right: 0px;
+  vertical-align: middle;
+  font-size: 16px;
+  font-weight: bold;
+}
+td.foot {
+  height: 60px;
+  background-color: #009933;
+  color: #ffffff;
+  padding: 0px;
+  vertical-align: middle;
+  text-align: center;
+  font-size: 16px;
+  font-weight: bold;
+}
+td.users {
+  background-color: #b3e5b3;
+  color: #003311;
+}
+td.messages {
+  background-color: #ecf8ec;
+}
+textarea.x {
+  background-color: #ecf8ec;
+  font-size: 16px;
+  color: #003311;
+}
+td.b_1 {
+  background-color: #ecf8ec;
+  font-size: 20px;
+  color: #003311;
+  font-weight: bold;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+}
+td.b_1:hover {
+  background-color: #b3e5b3;
+}
+a.send {
+  display: block;
+  width: 100%;
+  height: 100%;
+  vertical-align: middle;
+  line-height:50px;
+}
+td.user {
+  background-color: #b3e5b3;
+  cursor: pointer;
+}
+td.user:hover {
+  background-color: #ecf8ec;
+}
+a.user {
+  display: block;
+  width: 100%;
+}
+td.btn_exit {
+  background-color: #ecf8ec;
+  cursor: pointer;
+}
+td.btn_exit:hover {
+  background-color: #FF0000;
+  font-size: 1px;
+}
+a.exit {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+</style>
+
+</head>
+<body onLoad='init()' onResize='resize_elements()' marginwidth='0' leftmargin='0' rightmargin='0' marginheight='0' topmargin='0' bottommargin='0'>
+<table id='container' cellpadding='0' cellspacing='0' width='100%' height='100%'>
+<tr>
+<td width='80%' height='30' class='head' id='td_head'></td>
+<td width='20%' class='head'>
+  <table cellpadding='0' cellspacing='0' width='100%' height='100%'>
+    <tr><td height='9'></td><td width='12'></td><td width='9'></td></tr>
+    <tr><td height='12'></td><td class='btn_exit'><a class='exit' onClick='btn_exitClick()'> </a></td><td></td></tr>
+    <tr><td height='9'></td><td></td><td></td></tr>
+  </table>
+</td>
+</tr>
+<tr>
+<td width='80%' height='100%' class='messages'>
+  <div id='messages'>
+    <table id='chat' cellpadding='0' cellspacing='0' width='100%'>
+    <tr><td id='col_userName'></td><td style='width:5px;'></td><td></td></tr>
+    </table>
+  </div>
+</td>
+<td width='20%' class='users'>
+  <div id='users'>
+    <table id='userList' cellpadding='0' cellspacing='0' width='100%' height='100%'>
+      <tr><td height='100%' width='100%'></td></tr>
+    </table>
+  </div>
+</td>
+</tr>
+<tr><td class='foot'><form name='form_1' style='display:inline;'>
+<textarea id='input_msg' wrap='soft' style='width:99%;height:50px;margin:0px;padding:0px;' class='x'></textarea></form>
+</td>
+<td class='foot'>
+  <table cellpadding='0' cellspacing='0' width='100%' height='100%'>
+    <tr><td height='5' width='5'></td><td></td><td height='5' width='5'></td></tr>
+    <tr><td height='50' width='5'></td><td id='b_1' class='b_1'><a class='send' onClick='btn_send()'>SEND</a></td><td height='50' width='5'></td></tr>
+    <tr><td height='5' width='5'></td><td></td><td height='5' width='5'></td></tr>
+  </table>
+</td></tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,437 @@
+<html>
+<head>
+<title>%s</title>
+<meta charset='utf-8'>
+<script language='JavaScript'>
+
+//------------------------------------------------------------------------------
+
+// Parameters from Server
+var param_login_uid, param_login_pwd, param_reg_name, param_reg_pwd, param_qid;
+var param_qAnswer, path_login, path_register, path_stat, path_asq, protocol;
+var td_head_text;
+
+// Local variables
+var td_head, form_login, login_uid, login_pwd, login_qid, login_qa;
+var form_reg, reg_name, reg_pwd, reg_pwd_2, reg_qid, reg_qa;
+var input_confirm, asq_img, page_1, page_2, toList, currentAction;
+var replyASQ;
+
+//------------------------------------------------------------------------------
+
+function init_1() {
+
+  td_head_text = '%s';
+  param_login_uid = '%s';
+  param_login_pwd = '%s';
+  param_reg_name = '%s';
+  param_reg_pwd = '%s';
+  param_qid = '%s';
+  param_qAnswer = '%s';
+  path_login = '%s';
+  path_register = '%s';
+  path_stat = '%s';
+  path_asq = '%s';
+  protocol = '%s';
+  
+}
+
+//#//
+
+function init_2() {
+
+  td_head = document.getElementById('td_head');
+  td_head.innerHTML = td_head_text;
+    
+  form_login = document.getElementById('form_login');
+  form_login.action = path_login;
+  form_reg = document.getElementById('form_reg');
+  form_reg.action = path_register;
+  
+  login_uid = document.getElementById('login_uid');
+  login_uid.name = param_login_uid;
+  login_pwd = document.getElementById('login_pwd');
+  login_pwd.name = param_login_pwd;
+  login_qid = document.getElementById('login_qid');
+  login_qid.name = param_qid;
+  login_qa = document.getElementById('login_qa');
+  login_qa.name = param_qAnswer;
+  
+  reg_name = document.getElementById('reg_name');
+  reg_name.name = param_reg_name;
+  reg_pwd = document.getElementById('reg_pwd');
+  reg_pwd.name = param_reg_pwd;
+  reg_pwd_2 = document.getElementById('reg_pwd_2');
+  reg_qid = document.getElementById('reg_qid');
+  reg_qid.name = param_qid;
+  reg_qa = document.getElementById('reg_qa');
+  reg_qa.name = param_qAnswer;
+  
+  input_confirm = document.getElementById('input_confirm');
+  input_confirm.name = param_qid;  
+  asq_img = document.getElementById('asq_img');  
+  page_1 = document.getElementById('page_1');
+  page_2 = document.getElementById('page_2');
+  
+  toList = document.getElementById('toList');
+  toList.href = protocol + location.host + path_stat;
+  toList.target = '_blank';
+  currentAction = '';
+}
+
+//------------------------------------------------------------------------------
+
+function init() {
+
+  init_1();
+  init_2();
+}
+
+//------------------------------------------------------------------------------
+
+function logClick() {
+
+  if (login_uid.value == '') {
+    alert('UID can not be empty!');//
+    return;
+  }
+  
+  if ( !strIsUint(login_uid.value) ) {
+    alert('UID must be numeric!');
+    return;
+  }
+  
+  currentAction = 'log';
+  page_1.className = 'hidden';
+  page_2.className = 'visible';
+  get_asq();
+}
+
+//------------------------------------------------------------------------------
+
+function regClick() {
+
+  if (reg_pwd.value != reg_pwd_2.value) {
+    alert('Different passwords entered. Each field must contain the same password.');//
+    return;
+  }
+  if (reg_name.value == '') {
+    alert('Name can not be empty!');
+    return;
+  }
+  
+  currentAction = 'reg';
+  page_1.className = 'hidden';
+  page_2.className = 'visible';
+  get_asq();
+}
+
+//------------------------------------------------------------------------------
+
+function input_confirm_keyDown(e) {
+
+  if (e.keyCode == 13) { // enter
+    e.stopPropagation();
+    e.preventDefault();
+    confirmClick();
+  }
+}
+
+//------------------------------------------------------------------------------
+
+function confirmClick() {
+
+  if ( !strIsUint(input_confirm.value) ) {
+    alert('Answer must be numeric!');
+    return;
+  }
+  
+  login_qa.value = input_confirm.value;
+  reg_qa.value = input_confirm.value;
+  
+  if (currentAction == 'log')
+  {
+    form_login.submit();
+  }
+  else if (currentAction == 'reg')
+  {
+    form_reg.submit();
+  }
+}
+
+//------------------------------------------------------------------------------
+
+function strIsUint(s) {
+
+  var len = s.length;
+  var i, ch, ok;
+  
+  if (len == 0) {
+    return false;
+  }
+  
+  for (i = 0; i < len; i++) {
+    ch = s.charAt(i);
+    ok = ( (ch == '0') || (ch == '1') || (ch == '2') || (ch == '3') || (ch == '4') || (ch == '5') || (ch == '6') || (ch == '7') || (ch == '8') || (ch == '9') );
+    if (!ok) {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+//------------------------------------------------------------------------------
+
+function get_asq() {
+
+  var xhttp = new XMLHttpRequest();
+  var xurl = protocol + location.host + path_asq;
+  var xreq = '';
+  var reply;
+  
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+       reply = this.responseText;
+       replyASQ = JSON.parse(reply);
+       processASQ();
+    }
+  };
+  xhttp.open('GET', xurl, true);
+  xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+  xhttp.send(xreq);
+}
+
+//------------------------------------------------------------------------------
+
+function processASQ() {
+
+  login_qid.value = replyASQ['qid'];
+  reg_qid.value = replyASQ['qid'];  
+  asq_img.src = 'data:image/png;base64,' + replyASQ['msg'];
+}
+
+//------------------------------------------------------------------------------
+
+</script>
+
+<style>
+td.head {
+  background-color: #009933;
+  color: #ffffff;
+  padding: 0px;
+  vertical-align: middle;
+  font-size: 16px;
+  font-weight: bold;
+}
+td.foot {
+  background-color: #009933;
+  color: #ffffff;
+  padding: 0px;
+  vertical-align: middle;
+  font-size: 16px;
+  font-weight: bold;
+}
+td.body {
+  background-color: #ecf8ec;
+  color: #003311;
+  padding: 0px;
+  vertical-align: middle;
+  text-align: center;
+  font-size: 16px;
+}
+td.f_l {
+  text-align: right;
+  width: 40%;
+}
+td.f_r {
+  text-align: left;
+}
+td.f_m {
+  width: 20px;
+}
+span.mini {
+  font-size: 14px;
+}
+a.link {
+  color: #003311;
+}
+a.link:hover {
+  color: #00cc00;
+}
+table.visible {
+  display:table;
+}
+table.hidden {
+  display:none;
+}
+img.asq {
+  border-width: 1px;
+  border-style: solid;
+  border-color: green;
+}
+</style>
+
+</head>
+<body onLoad='init()' marginwidth='0' leftmargin='0' rightmargin='0' marginheight='0' topmargin='0' bottommargin='0'>
+
+<!-- ....................................................................... -->
+
+<table id='page_1' class='visible' cellpadding='0' cellspacing='0' width='100%' height='100%'>
+<tr>
+<td width='15' height='30' class='head'></td>
+<td class='head' id='td_head'></td>
+<td width='15' class='head'></td>
+</tr>
+<tr>
+<td width='15' class='body'></td>
+<td class='body'>
+  Welcome to the Chat!<br>
+  <form id='form_login' method='post' name='form_1'>
+  <br>
+  <b>Log In:</b><br>
+  <table cellpadding='0' cellspacing='0' width='100%' height=''>
+    <tr>
+    <td></td>
+    <td width='90%'>
+      <table cellpadding='0' cellspacing='0' width='100%'>
+	<tr><td colspan='3' height='10'></td></tr>
+	<tr>
+	  <td class='f_l'>UID</td>
+	  <td class='f_m'></td>
+	  <td class='f_r'><input id='login_uid' type='text'></td>
+	</tr>
+	<tr><td colspan='3' height='5'></td></tr>
+	<tr>
+	  <td class='f_l'>Password</td>
+	  <td class='f_m'></td>
+	  <td class='f_r'><input id='login_pwd' type='password'></td>
+	</tr>
+	<tr><td colspan='3' height='10'></td></tr>
+	<tr>
+	  <td colspan='3' align='center'><input type='button' value='Log In' onClick='logClick()'></td>
+	</tr>
+      </table>
+    </td>
+    <td></td>
+    </tr>
+  </table>
+  <input id='login_qid' type='text' hidden><input id='login_qa' type='text' hidden></form>
+  <span class='mini'>Forgot your UID? <a id='toList' class='link'>Click here</a> to view the list of registered users. <br>
+  <br>
+  First time here? Take a few seconds to become a registered user. <br>
+  No email required! </span><br>
+  <br>
+  <b>Register:</b><br>
+  <form id='form_reg' method='post' name='form_2'>
+  <table cellpadding='0' cellspacing='0' width='100%' height=''>
+    <tr>
+    <td></td>
+    <td width='90%'>
+      <table cellpadding='0' cellspacing='0' width='100%' height='100%'>
+	<tr><td colspan='3' height='10'></td></tr>
+	<tr>
+	  <td class='f_l'>Name</td>
+	  <td class='f_m'></td>
+	  <td class='f_r'><input id='reg_name' type='text'></td>
+	</tr>
+	<tr><td colspan='3' height='5'></td></tr>
+	<tr>
+	  <td class='f_l'>Password</td>
+	  <td class='f_m'></td>
+	  <td class='f_r'><input id='reg_pwd' type='password'></td>
+	</tr>
+	<tr><td colspan='3' height='5'></td></tr>
+	<tr>
+	  <td class='f_l'>Password again</td>
+	  <td class='f_m'></td>
+	  <td class='f_r'><input id='reg_pwd_2' type='password'></td>
+	</tr>
+	<tr><td colspan='3' height='10'></td></tr>
+	<tr>
+	  <td colspan='3' align='center'><input type='button' value='Register' onClick='regClick()'></td>
+	</tr>
+      </table>
+    </td>
+    <td></td>
+    </tr>
+  </table>
+  <br>
+  <span class='mini'>'Name' field is your name in chat, visible to others. It is not a login. <br>
+  Name, as well as Password, can consist of any unicode symbols! <br>
+  Example: « § ☼ ☺ Ω ∞ Ξ ♠ Ξ ∞ Ω ☺ ☼ § » . <br>
+  To log into chat after registration you will need a unique UID, <br>
+  which will be given to you after the registration.</span>
+  <input id='reg_qid' type='text' hidden><input id='reg_qa' type='text' hidden></form>
+  <br>
+</td>
+<td width='30' class='body'></td>
+</tr>
+<tr>
+<td width='15' height='30' class='foot'></td>
+<td class='foot'></td>
+<td width='15' class='foot'></td>
+</tr>
+</table>
+
+<!-- ....................................................................... -->
+
+<table id='page_2' class='hidden' cellpadding='0' cellspacing='0' width='100%' height='100%'>
+<tr>
+<td width='15' height='30' class='head'></td>
+<td class='head'>Chat</td>
+<td width='15' class='head'></td>
+</tr>
+<tr>
+<td width='15' class='body'></td>
+<td class='body'>
+  <br>
+  <form id='form_confirm' method='post' name='form_3'>
+  <br>
+  <b>Anti-Spam Question:</b><br>
+  <br>
+  <span class='mini'>Please, confirm that you are no spammer. <br>
+  Confirm the number of circles, drawn in the picture below. <br>
+  The answer must be numeric, like 0, 1, 2, 3 and so on. </span>
+  <table cellpadding='0' cellspacing='0' width='100%' height=''>
+    <tr>
+    <td></td>
+    <td width='90%'>
+      <table cellpadding='0' cellspacing='0' width='100%'>
+	<tr><td colspan='3' height='10'></td></tr>
+	<tr>
+	  <td class='f_l'>Number of Circles</td>
+	  <td class='f_m'></td>
+	  <td class='f_r'>
+	    <input id='input_confirm' type='text' onKeyDown='input_confirm_keyDown(event)'>
+	  </td>
+	</tr>
+	<tr><td colspan='3' height='10'></td></tr>
+	<tr>
+	  <td colspan='3' align='center'><input type='button' value='Confirm' onClick='confirmClick()'></td>
+	</tr>
+	<tr>
+	  <td colspan='3' align='center'><br><img id='asq_img' class='asq'></td>
+	</tr>
+      </table>
+    </td>
+    <td></td>
+    </tr>
+  </table>
+  </form><br>
+</td>
+<td width='30' class='body'></td>
+</tr>
+<tr>
+<td width='15' height='30' class='foot'></td>
+<td class='foot'></td>
+<td width='15' class='foot'></td>
+</tr>
+</table>
+
+<!-- ....................................................................... -->
+
+</body>
+</html>
+
+<!-- Powered by the Web Chat «SAGA MIKRON» -->

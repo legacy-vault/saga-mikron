@@ -1,0 +1,134 @@
+<html>
+<head>
+<title>%s</title>
+<meta charset='utf-8'>
+<script language='JavaScript'>
+
+//------------------------------------------------------------------------------
+
+// Parameters from Server
+var protocol, path_index, td_head_text, uid;
+
+// Local variables
+var td_head, span_uid, toIndex;
+
+//------------------------------------------------------------------------------
+
+function init_1() {
+
+  protocol = '%s';
+  path_index = '%s';
+  td_head_text = '%s';
+}
+
+//------------------------------------------------------------------------------
+
+//#//
+function init_2() { uid = '%d'; }
+//#//
+
+//------------------------------------------------------------------------------
+
+function init_3() {
+
+  td_head = document.getElementById('td_head');
+  td_head.innerHTML = td_head_text;
+    
+  span_uid = document.getElementById('span_uid');
+  span_uid.innerHTML = uid;
+  
+  toIndex = document.getElementById('toIndex');
+  toIndex.href = protocol + location.host + path_index;
+}
+
+//------------------------------------------------------------------------------
+
+function init() {
+
+  init_1();
+  init_2();
+  init_3();
+}
+
+//------------------------------------------------------------------------------
+
+</script>
+
+<style>
+td.head {
+  background-color: #009933;
+  color: #ffffff;
+  padding: 0px;
+  vertical-align: middle;
+  font-size: 16px;
+  font-weight: bold;
+}
+td.foot {
+  background-color: #009933;
+  color: #ffffff;
+  padding: 0px;
+  vertical-align: middle;
+  font-size: 16px;
+  font-weight: bold;
+}
+td.body {
+  background-color: #ecf8ec;
+  color: #003311;
+  padding: 0px;
+  vertical-align: middle;
+  text-align: center;
+  font-size: 16px;
+}
+span.uid {
+  font-size: 16px;
+  font-weight: bold;
+}
+a.link {
+  color: #003311;
+}
+a.link:hover {
+  color: #00cc00;
+}
+table.visible {
+  display:table;
+}
+table.hidden {
+  display:none;
+}
+</style>
+
+</head>
+<body onLoad='init()' marginwidth='0' leftmargin='0' rightmargin='0' marginheight='0' topmargin='0' bottommargin='0'>
+
+<!-- ....................................................................... -->
+
+<table id='page' class='visible' cellpadding='0' cellspacing='0' width='100%' height='100%'>
+<tr>
+<td width='15' height='30' class='head'></td>
+<td class='head' id='td_head'></td>
+<td width='15' class='head'></td>
+</tr>
+<tr>
+<td width='15' class='body'></td>
+<td class='body'>
+  <br>
+  Registration completed!<br>
+  <br>
+  Your UID is <span id='span_uid' class='uid'></span>.<br>
+  Save this number to be able to log into this Chat.<br>
+  <br>
+  <a id='toIndex' class='link'>Click here</a> to log in.
+</td>
+<td width='30' class='body'></td>
+</tr>
+<tr>
+<td width='15' height='30' class='foot'></td>
+<td class='foot'></td>
+<td width='15' class='foot'></td>
+</tr>
+</table>
+
+<!-- ....................................................................... -->
+
+</body>
+</html>
