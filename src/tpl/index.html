@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
 <title>%s</title>
@@ -12,7 +13,7 @@ var param_qAnswer, path_login, path_register, path_stat, path_asq, protocol;
 var td_head_text;
 
 // Local variables
-var td_head, form_login, login_uid, login_pwd, login_qid, login_qa;
+var td_head, td_head2, form_login, login_uid, login_pwd, login_qid, login_qa;
 var form_reg, reg_name, reg_pwd, reg_pwd_2, reg_qid, reg_qa;
 var input_confirm, asq_img, page_1, page_2, toList, currentAction;
 var replyASQ;
@@ -41,7 +42,9 @@ function init_1() {
 function init_2() {
 
   td_head = document.getElementById('td_head');
+  td_head2 = document.getElementById('td_head2');
   td_head.innerHTML = td_head_text;
+  td_head2.innerHTML = td_head_text;
     
   form_login = document.getElementById('form_login');
   form_login.action = path_login;
@@ -91,7 +94,7 @@ function init() {
 
 function logClick() {
 
-  if (login_uid.value == '') {
+  if (login_uid.value === '') {
     alert('UID can not be empty!');//
     return;
   }
@@ -115,7 +118,7 @@ function regClick() {
     alert('Different passwords entered. Each field must contain the same password.');//
     return;
   }
-  if (reg_name.value == '') {
+  if (reg_name.value === '') {
     alert('Name can not be empty!');
     return;
   }
@@ -216,29 +219,109 @@ function processASQ() {
 </script>
 
 <style>
+
+html {
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+  border: none;
+  height: 100%;
+}
+
+body {
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+  border: none;
+  height: 100%;
+}
+
+span.mini {
+  font-size: 14px;
+}
+
+table.container {
+  padding: 0px 0px 0px 0px;
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0px 0px;
+  width: 100%;
+  height: 100%;
+}
+table.visible {
+  padding: 0px 0px 0px 0px;
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0px 0px;
+  width: 100%;
+  height: 100%;
+  display:table;
+}
+table.hidden {
+  padding: 0px 0px 0px 0px;
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0px 0px;
+  width: 100%;
+  height: 100%;
+  display:none;
+}
+
 td.head {
   background-color: #009933;
   color: #ffffff;
-  padding: 0px;
+  padding: 0px 0px 0px 0px;
   vertical-align: middle;
   font-size: 16px;
   font-weight: bold;
+  height: 30px;
+  width: 15px;
+}
+td.head2 {
+  background-color: #009933;
+  color: #ffffff;
+  padding: 0px 0px 0px 0px;
+  vertical-align: middle;
+  font-size: 16px;
+  font-weight: bold;
+  height: 30px;
+  width: auto;
 }
 td.foot {
   background-color: #009933;
   color: #ffffff;
-  padding: 0px;
+  padding: 0px 0px 0px 0px;
   vertical-align: middle;
   font-size: 16px;
   font-weight: bold;
+  width: 15px;
+  height: 30px;
+}
+td.foot2 {
+  background-color: #009933;
+  color: #ffffff;
+  padding: 0px 0px 0px 0px;
+  vertical-align: middle;
+  font-size: 16px;
+  font-weight: bold;
+  width: auto;
+  height: 30px;
 }
 td.body {
   background-color: #ecf8ec;
   color: #003311;
-  padding: 0px;
+  padding: 0px 0px 0px 0px;
   vertical-align: middle;
   text-align: center;
   font-size: 16px;
+  width: 15px;
+}
+td.body2 {
+  background-color: #ecf8ec;
+  color: #003311;
+  padding: 0px 0px 0px 0px;
+  vertical-align: middle;
+  text-align: center;
+  font-size: 16px;
+  width: auto;
 }
 td.f_l {
   text-align: right;
@@ -250,66 +333,72 @@ td.f_r {
 td.f_m {
   width: 20px;
 }
-span.mini {
-  font-size: 14px;
+td.w90p {
+  width: 90%;
 }
+td.h10 {
+  height: 10px;
+}
+td.h5 {
+  height: 5px;
+}
+td.c {
+  text-align: center;
+}
+
 a.link {
   color: #003311;
 }
 a.link:hover {
   color: #00cc00;
 }
-table.visible {
-  display:table;
-}
-table.hidden {
-  display:none;
-}
+
 img.asq {
   border-width: 1px;
   border-style: solid;
   border-color: green;
 }
+
 </style>
 
 </head>
-<body onLoad='init()' marginwidth='0' leftmargin='0' rightmargin='0' marginheight='0' topmargin='0' bottommargin='0'>
+<body onLoad='init()'>
 
 <!-- ....................................................................... -->
 
-<table id='page_1' class='visible' cellpadding='0' cellspacing='0' width='100%' height='100%'>
+<table id='page_1' class='visible'>
 <tr>
-<td width='15' height='30' class='head'></td>
-<td class='head' id='td_head'></td>
-<td width='15' class='head'></td>
+<td class='head'></td>
+<td class='head2' id='td_head'></td>
+<td class='head'></td>
 </tr>
 <tr>
-<td width='15' class='body'></td>
-<td class='body'>
+<td class='body'></td>
+<td class='body2'>
   Welcome to the Chat!<br>
   <form id='form_login' method='post' name='form_1'>
   <br>
   <b>Log In:</b><br>
-  <table cellpadding='0' cellspacing='0' width='100%' height=''>
+  <table class='container'>
     <tr>
     <td></td>
-    <td width='90%'>
-      <table cellpadding='0' cellspacing='0' width='100%'>
-	<tr><td colspan='3' height='10'></td></tr>
+    <td class='w90p'>
+      <table class='container'>
+	<tr><td colspan='3' class='h10'></td></tr>
 	<tr>
 	  <td class='f_l'>UID</td>
 	  <td class='f_m'></td>
 	  <td class='f_r'><input id='login_uid' type='text'></td>
 	</tr>
-	<tr><td colspan='3' height='5'></td></tr>
+	<tr><td colspan='3' class='h5'></td></tr>
 	<tr>
 	  <td class='f_l'>Password</td>
 	  <td class='f_m'></td>
 	  <td class='f_r'><input id='login_pwd' type='password'></td>
 	</tr>
-	<tr><td colspan='3' height='10'></td></tr>
+	<tr><td colspan='3' class='h10'></td></tr>
 	<tr>
-	  <td colspan='3' align='center'><input type='button' value='Log In' onClick='logClick()'></td>
+	  <td colspan='3' class='c'><input type='button' value='Log In' onClick='logClick()'></td>
 	</tr>
       </table>
     </td>
@@ -324,32 +413,32 @@ img.asq {
   <br>
   <b>Register:</b><br>
   <form id='form_reg' method='post' name='form_2'>
-  <table cellpadding='0' cellspacing='0' width='100%' height=''>
+  <table class='container'>
     <tr>
     <td></td>
-    <td width='90%'>
-      <table cellpadding='0' cellspacing='0' width='100%' height='100%'>
-	<tr><td colspan='3' height='10'></td></tr>
+    <td class='w90p'>
+      <table class='container'>
+	<tr><td colspan='3' class='h10'></td></tr>
 	<tr>
 	  <td class='f_l'>Name</td>
 	  <td class='f_m'></td>
 	  <td class='f_r'><input id='reg_name' type='text'></td>
 	</tr>
-	<tr><td colspan='3' height='5'></td></tr>
+	<tr><td colspan='3' class='h5'></td></tr>
 	<tr>
 	  <td class='f_l'>Password</td>
 	  <td class='f_m'></td>
 	  <td class='f_r'><input id='reg_pwd' type='password'></td>
 	</tr>
-	<tr><td colspan='3' height='5'></td></tr>
+	<tr><td colspan='3' class='h5'></td></tr>
 	<tr>
 	  <td class='f_l'>Password again</td>
 	  <td class='f_m'></td>
 	  <td class='f_r'><input id='reg_pwd_2' type='password'></td>
 	</tr>
-	<tr><td colspan='3' height='10'></td></tr>
+	<tr><td colspan='3' class='h10'></td></tr>
 	<tr>
-	  <td colspan='3' align='center'><input type='button' value='Register' onClick='regClick()'></td>
+	  <td colspan='3' class='c'><input type='button' value='Register' onClick='regClick()'></td>
 	</tr>
       </table>
     </td>
@@ -365,26 +454,26 @@ img.asq {
   <input id='reg_qid' type='text' hidden><input id='reg_qa' type='text' hidden></form>
   <br>
 </td>
-<td width='30' class='body'></td>
+<td class='body'></td>
 </tr>
 <tr>
-<td width='15' height='30' class='foot'></td>
 <td class='foot'></td>
-<td width='15' class='foot'></td>
+<td class='foot2'></td>
+<td class='foot'></td>
 </tr>
 </table>
 
 <!-- ....................................................................... -->
 
-<table id='page_2' class='hidden' cellpadding='0' cellspacing='0' width='100%' height='100%'>
+<table id='page_2' class='hidden'>
 <tr>
-<td width='15' height='30' class='head'></td>
-<td class='head'>Chat</td>
-<td width='15' class='head'></td>
+<td class='head'></td>
+<td id='td_head2' class='head2'></td>
+<td class='head'></td>
 </tr>
 <tr>
-<td width='15' class='body'></td>
-<td class='body'>
+<td class='body'></td>
+<td class='body2'>
   <br>
   <form id='form_confirm' method='post' name='form_3'>
   <br>
@@ -393,12 +482,12 @@ img.asq {
   <span class='mini'>Please, confirm that you are no spammer. <br>
   Confirm the number of circles, drawn in the picture below. <br>
   The answer must be numeric, like 0, 1, 2, 3 and so on. </span>
-  <table cellpadding='0' cellspacing='0' width='100%' height=''>
+  <table class='container'>
     <tr>
     <td></td>
-    <td width='90%'>
-      <table cellpadding='0' cellspacing='0' width='100%'>
-	<tr><td colspan='3' height='10'></td></tr>
+    <td class='w90p'>
+      <table class='container'>
+	<tr><td colspan='3' class='h10'></td></tr>
 	<tr>
 	  <td class='f_l'>Number of Circles</td>
 	  <td class='f_m'></td>
@@ -406,12 +495,12 @@ img.asq {
 	    <input id='input_confirm' type='text' onKeyDown='input_confirm_keyDown(event)'>
 	  </td>
 	</tr>
-	<tr><td colspan='3' height='10'></td></tr>
+	<tr><td colspan='3' class='h10'></td></tr>
 	<tr>
-	  <td colspan='3' align='center'><input type='button' value='Confirm' onClick='confirmClick()'></td>
+	  <td colspan='3' class='c'><input type='button' value='Confirm' onClick='confirmClick()'></td>
 	</tr>
 	<tr>
-	  <td colspan='3' align='center'><br><img id='asq_img' class='asq'></td>
+	  <td colspan='3' class='c'><br><img id='asq_img' class='asq'></td>
 	</tr>
       </table>
     </td>
@@ -420,12 +509,12 @@ img.asq {
   </table>
   </form><br>
 </td>
-<td width='30' class='body'></td>
+<td class='body'></td>
 </tr>
 <tr>
-<td width='15' height='30' class='foot'></td>
 <td class='foot'></td>
-<td width='15' class='foot'></td>
+<td class='foot2'></td>
+<td class='foot'></td>
 </tr>
 </table>
 

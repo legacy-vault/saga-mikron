@@ -43,20 +43,35 @@ var file_indexTemplate, file_chatTemplate, file_userRegdTemplate string
 
 //------------------------------------------------------------------------------
 
-func templates_init() {
+func templates_init() (ok bool) {
 
 	// Reads the Templates of Pages from Files into Memory.
 
+	ok = false
+
 	tpl_sep_len = len(tpl_sep)
 
-	template_index()
-	template_chat()
-	template_userRegistered()
+	ok = template_index()
+	if !ok {
+		return ok
+	}
+
+	ok = template_chat()
+	if !ok {
+		return ok
+	}
+
+	ok = template_userRegistered()
+	if !ok {
+		return ok
+	}
+
+	return ok
 }
 
 //------------------------------------------------------------------------------
 
-func template_index() {
+func template_index() (ok bool) {
 
 	// Prepares the Template of Index Page.
 
@@ -69,7 +84,7 @@ func template_index() {
 	buffer, err = ioutil.ReadFile(file_indexTemplate)
 	if err != nil {
 		log.Println("Error reading file", file_indexTemplate, err) //
-		return
+		return false
 	}
 	tpl_tmp = string(buffer) // Buffer -> string
 
@@ -98,11 +113,13 @@ func template_index() {
 
 	// Join Parts
 	tpl_index = tpl_part_1 + tpl_part_2
+
+	return true
 }
 
 //------------------------------------------------------------------------------
 
-func template_chat() {
+func template_chat() (ok bool) {
 
 	// Prepares the Template of Chat Page.
 
@@ -115,7 +132,7 @@ func template_chat() {
 	buffer, err = ioutil.ReadFile(file_chatTemplate)
 	if err != nil {
 		log.Println("Error reading file", file_chatTemplate, err) //
-		return
+		return false
 	}
 	tpl_tmp = string(buffer) // Buffer -> string
 
@@ -154,11 +171,13 @@ func template_chat() {
 
 	// Join strings
 	tpl_chat = tpl_part_1 + tpl_part_2
+
+	return true
 }
 
 //------------------------------------------------------------------------------
 
-func template_userRegistered() {
+func template_userRegistered() (ok bool) {
 
 	// Prepares the Template of 'User Registered' Page.
 
@@ -171,7 +190,7 @@ func template_userRegistered() {
 	buffer, err = ioutil.ReadFile(file_userRegdTemplate)
 	if err != nil {
 		log.Println("Error reading file", file_userRegdTemplate, err) //
-		return
+		return false
 	}
 	tpl_tmp = string(buffer) // Buffer -> string
 
@@ -200,6 +219,8 @@ func template_userRegistered() {
 
 	// Split third Part
 	tpl_userRegistered_p3 = tpl_tmp[tpl_sep1_pos+tpl_sep_len+tpl_sep2_pos:]
+
+	return true
 }
 
 //------------------------------------------------------------------------------

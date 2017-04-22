@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
 <title>%s</title>
@@ -55,62 +56,114 @@ function init() {
 </script>
 
 <style>
-td.head {
-  background-color: #009933;
-  color: #ffffff;
-  padding: 0px;
-  vertical-align: middle;
-  font-size: 16px;
-  font-weight: bold;
+
+html {
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+  border: none;
+  height: 100%;
 }
-td.foot {
-  background-color: #009933;
-  color: #ffffff;
-  padding: 0px;
-  vertical-align: middle;
-  font-size: 16px;
-  font-weight: bold;
+
+body {
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+  border: none;
+  height: 100%;
 }
-td.body {
-  background-color: #ecf8ec;
-  color: #003311;
-  padding: 0px;
-  vertical-align: middle;
-  text-align: center;
-  font-size: 16px;
-}
+
 span.uid {
   font-size: 16px;
   font-weight: bold;
 }
+
+table.container {
+  padding: 0px 0px 0px 0px;
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0px 0px;
+  width: 100%;
+  height: 100%;
+}
+
+td.head {
+  background-color: #009933;
+  color: #ffffff;
+  padding: 0px 0px 0px 0px;
+  vertical-align: middle;
+  font-size: 16px;
+  font-weight: bold;
+  height: 30px;
+  width: 15px;
+}
+td.head2 {
+  background-color: #009933;
+  color: #ffffff;
+  padding: 0px 0px 0px 0px;
+  vertical-align: middle;
+  font-size: 16px;
+  font-weight: bold;
+  height: 30px;
+  width: auto;
+}
+td.foot {
+  background-color: #009933;
+  color: #ffffff;
+  padding: 0px 0px 0px 0px;
+  vertical-align: middle;
+  font-size: 16px;
+  font-weight: bold;
+  width: 15px;
+  height: 30px;
+}
+td.foot2 {
+  background-color: #009933;
+  color: #ffffff;
+  padding: 0px 0px 0px 0px;
+  vertical-align: middle;
+  font-size: 16px;
+  font-weight: bold;
+  width: auto;
+  height: 30px;
+}
+td.body {
+  background-color: #ecf8ec;
+  color: #003311;
+  padding: 0px 0px 0px 0px;
+  vertical-align: middle;
+  text-align: center;
+  font-size: 16px;
+  width: 15px;
+}
+td.body2 {
+  background-color: #ecf8ec;
+  color: #003311;
+  padding: 0px 0px 0px 0px;
+  vertical-align: middle;
+  text-align: center;
+  font-size: 16px;
+  width: auto;
+}
+
 a.link {
   color: #003311;
 }
 a.link:hover {
   color: #00cc00;
 }
-table.visible {
-  display:table;
-}
-table.hidden {
-  display:none;
-}
+
 </style>
 
 </head>
-<body onLoad='init()' marginwidth='0' leftmargin='0' rightmargin='0' marginheight='0' topmargin='0' bottommargin='0'>
-
-<!-- ....................................................................... -->
-
-<table id='page' class='visible' cellpadding='0' cellspacing='0' width='100%' height='100%'>
+<body onLoad='init()'>
+<table id='page' class='container'>
 <tr>
-<td width='15' height='30' class='head'></td>
-<td class='head' id='td_head'></td>
-<td width='15' class='head'></td>
+<td class='head'></td>
+<td class='head2' id='td_head'></td>
+<td class='head'></td>
 </tr>
 <tr>
-<td width='15' class='body'></td>
-<td class='body'>
+<td class='body'></td>
+<td class='body2'>
   <br>
   Registration completed!<br>
   <br>
@@ -119,16 +172,15 @@ table.hidden {
   <br>
   <a id='toIndex' class='link'>Click here</a> to log in.
 </td>
-<td width='30' class='body'></td>
+<td class='body'></td>
 </tr>
 <tr>
-<td width='15' height='30' class='foot'></td>
 <td class='foot'></td>
-<td width='15' class='foot'></td>
+<td class='foot2'></td>
+<td class='foot'></td>
 </tr>
 </table>
-
-<!-- ....................................................................... -->
-
 </body>
 </html>
+
+<!-- Powered by the Web Chat «SAGA MIKRON» -->

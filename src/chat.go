@@ -4,8 +4,8 @@
 
 	Web Chat «SAGA MIKRON».
 
-	Version: 0.2.
-	Date of Creation: 2017-04-20.
+	Version: 0.4.
+	Date of Creation: 2017-04-23.
 	Author: McArcher.
 
 	This is a simple web Chat.
@@ -80,12 +80,25 @@ const chat_recordsMaxLast = math.MaxUint16 // Maximum Number of the Last Chat Me
 // Flags
 var flag_port_ptr = flag.String("port", srv_port_default, "Port Number.")
 var flag_ipAddress_ptr = flag.String("ip", srv_ipAddress_default, "IP Address.")
-var flag_userDataFile_ptr = flag.String("udf", file_userData_default, "Path to User Data File.")
-var flag_indexFile_ptr = flag.String("if", file_index_default, "Path to Index File Template.")
-var flag_chatFile_ptr = flag.String("cf", file_chat_default, "Path to Chat File Template.")
-var flag_userRegdFile_ptr = flag.String("urf", file_userRegistered_default, "Path to 'User Registered' File Template.")
+
+var flag_userDataFile_ptr = flag.String("udf", file_userData_default,
+	"Path to User Data File.")
+
+var flag_createUserDataFile_ptr = flag.Bool("cudf", false,
+	"Create User Data File if it does not exist.")
+
+var flag_indexFile_ptr = flag.String("if", file_index_default,
+	"Path to Index File Template.")
+
+var flag_chatFile_ptr = flag.String("cf", file_chat_default,
+	"Path to Chat File Template.")
+
+var flag_userRegdFile_ptr = flag.String("urf", file_userRegistered_default,
+	"Path to 'User Registered' File Template.")
+
 var flag_ari_ptr = flag.Int("ari", activityRevisorInterval_default,
 	"Activity Revisor Interval, in Seconds.")
+
 var flag_asqRevInt_ptr = flag.Int("asqri", asq_revisor_interval_default,
 	"Anti-Spam Questions Revisor Interval, in Seconds.")
 
@@ -123,11 +136,24 @@ func main() {
 
 	// Main Function.
 
+	var ok bool = false
+
 	// Preparations
 	flags_init()
 	chat_init()
-	templates_init()
-	userData_init()
+
+	// Templates
+	ok = templates_init()
+	if !ok {
+		return
+	}
+
+	// User Data
+	ok = userData_init()
+	if !ok {
+		return
+	}
+
 	saveRegisteredUsersToTpl() // Must be run after userData_init() !
 
 	// Server
@@ -153,6 +179,7 @@ func flags_init() {
 	srv_ipAddress = *flag_ipAddress_ptr
 
 	// Files
+	createUserDataFile = *flag_createUserDataFile_ptr
 	file_userData = *flag_userDataFile_ptr
 	file_indexTemplate = *flag_indexFile_ptr
 	file_chatTemplate = *flag_chatFile_ptr

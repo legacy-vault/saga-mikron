@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
 <title>%s</title>
@@ -16,8 +17,10 @@ var param_req_mid, param_req_ts, param_unknownVal;
 // Local variables
 var error_POSTdata, error_BadRequest, error_EmptyMessage, error_NotLoggedIn;
 var error_LongMessage, chat, td_head, div_messages, div_users, input_msg;
-var userList, col_userName, row_idPrefix, bg_dark, mid, ts;
-var loop_msgUpdates, loop_userUpdates, newUserList, newMessage;
+var userList, row_idPrefix, bg_dark, mid, ts;
+var loop_msgUpdates, loop_userUpdates, newUserList, newMessage, div_h1;
+var div_h2, div_h2_td, net_pings, net_avping, net_knorm, net_i, net_arrMaxSize;
+var net_avping_ok, netw_indicator;
 
 //------------------------------------------------------------------------------
 
@@ -60,15 +63,24 @@ function init_2() {
   chat = document.getElementById('chat');
   td_head = document.getElementById('td_head');
   td_head.innerHTML = td_head_text;
-  div_messages = document.getElementById('messages');
-  div_users = document.getElementById('users');
+  div_messages = document.getElementById('div_messages');
+  div_users = document.getElementById('div_users');
   input_msg = document.getElementById('input_msg');
   userList = document.getElementById('userList');
-  col_userName = document.getElementById('col_userName');
+  div_h1 = document.getElementById('div_h1');
+  div_h2 = document.getElementById('div_h2');
+  div_h2_td = document.getElementById('div_h2_td');
+  netw_indicator = document.getElementById('netw_indicator');
   row_idPrefix = 'mid_';
   bg_dark = true;
   mid = param_unknownVal;
   ts = param_unknownVal;
+  net_knorm = 0.1; // 10%
+  net_pings = new Array();
+  net_avping = 0;
+  net_i = 0;
+  net_arrMaxSize = 10;
+  net_avping_ok = 100; // ms
   
   set_styles();
   get_msgUpdate();
@@ -101,15 +113,61 @@ function loop_userUpdates_start() {
 
 //------------------------------------------------------------------------------
 
+function process_ping(time) {
+
+  var i;
+  
+  if (net_pings.length == net_arrMaxSize) { net_pings.shift(); }
+  net_pings.push(time);
+  net_avping = 0;
+  for (i = 0; i < net_pings.length; i++) {
+    net_avping += net_pings[i];
+  }
+  net_avping /= net_pings.length;
+  
+  div_h2_td.innerHTML = 'Average Ping:<br>' + Math.round(net_avping) + 'ms';
+  
+  if ( net_avping <= net_avping_ok ) {
+    netw_indicator.className = 'btn_netw_ok';
+  } else if ( net_avping <= (net_knorm * msgUpdateInterval * 1000) ) {
+    netw_indicator.className = 'btn_netw_laggy';
+  } else if ( net_avping <= (msgUpdateInterval * 1000) ) {
+    netw_indicator.className = 'btn_netw_slow';
+  } else {
+    netw_indicator.className = 'btn_netw_broken';
+  }
+}
+
+//------------------------------------------------------------------------------
+
+function connection_problem() {
+  
+  netw_indicator.className = 'btn_netw_broken';
+  div_h2_td.innerHTML = 'Connection Lost!';
+}
+
+//------------------------------------------------------------------------------
+
 function get_msgUpdate() {
 
   var xhttp = new XMLHttpRequest();
   var xurl = protocol + location.host + get_postfix;
   var xreq = param_req_mid + '=' + mid + '&' + param_req_ts + '=' + ts;
   var reply;
+  var d, time_sent, time_rcvd, time_ping;
   
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
+  xhttp.timeout = msgUpdateInterval * 1000;
+  
+  xhttp.onreadystatechange = function() 
+  {
+    if (this.readyState == 4 && this.status == 200) 
+    {
+       
+       d = new Date(); 
+       time_rcvd = d.getTime();
+       time_ping = time_rcvd - time_sent;
+       process_ping(time_ping);
+       
        reply = this.responseText;
        if (reply == code_NoNews)
        {
@@ -117,18 +175,18 @@ function get_msgUpdate() {
        } 
        else if (reply == code_NotLoggedIn)
        {
-	alert(error_NotLoggedIn);
+	alert(error_NotLoggedIn); //
 	redirect();
 	return;
        } 
        else if (reply == code_BadPOSTdata)
        {
-	alert(error_POSTdata);
+	alert(error_POSTdata); //
 	return;
        } 
        else if (reply == code_BadRequest)
        {
-	alert(error_BadRequest);
+	alert(error_BadRequest); //
 	return;
        }
        newMessage = JSON.parse(reply);
@@ -136,9 +194,21 @@ function get_msgUpdate() {
        ts = newMessage['x'][param_req_ts];
        addMessage();
     }
+    
+    if (this.readyState == 4 && this.status == 0) 
+    {
+      connection_problem();
+    }
   };
+  
+  xhttp.ontimeout = function() 
+  {
+    connection_problem();
+  }
+  
   xhttp.open('POST', xurl, true);
   xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+  d = new Date(); time_sent = d.getTime();  
   xhttp.send(xreq);
 }
 
@@ -150,13 +220,23 @@ function get_userUpdate() {
   var xurl = protocol + location.host + path_activeList;
   var xreq = '';
   var reply;
+  var d, time_sent, time_rcvd, time_ping;
   
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
+  xhttp.timeout = msgUpdateInterval * 1000;
+  
+  xhttp.onreadystatechange = function() 
+  {
+    if (this.readyState == 4 && this.status == 200) 
+    {
+       d = new Date(); 
+       time_rcvd = d.getTime();
+       time_ping = time_rcvd - time_sent;
+       process_ping(time_ping);
+       
        reply = this.responseText;
        if (reply == code_NotLoggedIn)
        {
-	alert(error_NotLoggedIn);
+	alert(error_NotLoggedIn); //
 	redirect();
 	return;
        } 
@@ -164,9 +244,20 @@ function get_userUpdate() {
        newUserList = JSON.parse(reply);
        userList_update();
     }
+    if (this.readyState == 4 && this.status == 0) 
+    {
+      connection_problem();
+    }
   };
+  
+  xhttp.ontimeout = function() 
+  {
+    connection_problem();
+  }
+  
   xhttp.open('GET', xurl, true);
   xhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+  d = new Date(); time_sent = d.getTime(); 
   xhttp.send(xreq);
 }
 
@@ -200,36 +291,19 @@ function addMessage() {
   
   rowsCount = chat.rows.length;  
   for (i = 0; i < msgCount; i++) {
-    row = chat.insertRow(rowsCount);
+    row = chat.insertRow(rowsCount-1);
     row.id = row_idPrefix + newMessage['messages'][i]['mid'];
-    row.style.verticalAlign = 'top';
-    if (bg_dark) {
-      row.style.background = '#d9f2d9';
-    } else {
-      row.style.background = '#ecf8ec';
-    }
+    if (bg_dark) { row.className = 'drk'; } else { row.className = 'lig'; }
     cell = row.insertCell(0);
-    cell.innerHTML =	'' + decodeURIComponent(escape(window.atob( newMessage['messages'][i]['atr'] ))) + 
+    cell.className = 'm1';
+    cell.innerHTML =	decodeURIComponent(escape(window.atob( newMessage['messages'][i]['atr'] ))) + 
 			'<br>[' + newMessage['messages'][i]['tim'] + ']'; // base64 => UTF-8
-    cell.style.fontSize = '12px';
-    cell.style.color = '#308230';
-    cell.style.paddingLeft = '5px';
-    cell.style.paddingRight = '5px';
-    cell.style.paddingTop = '2px';
-    cell.style.paddingBottom = '2px';
-    cell.style.textAlign = 'right';
-    cell.style.wordBreak = "break-all";
+    
     cell = row.insertCell(1);
+    cell.className = 'm2';
     cell = row.insertCell(2);
+    cell.className = 'm3';
     cell.innerHTML = decodeURIComponent(escape(window.atob( newMessage['messages'][i]['txt'] ))); // base64 => UTF-8
-    cell.style.fontSize = '14px';
-    cell.style.color = '#153815';
-    cell.style.paddingLeft = '5px';
-    cell.style.paddingRight = '5px';
-    cell.style.paddingTop = '2px';
-    cell.style.paddingBottom = '2px';
-    cell.style.textAlign = 'left';
-    cell.style.wordBreak = "break-all";
     rowsCount++;
     bg_dark = !bg_dark;
   } 
@@ -248,7 +322,7 @@ function scroll_messages() {
 function userList_update() {
 
   var userCount = Object.keys(newUserList['names']).length;
-  var rowsCount, row, cell, j;
+  var rowsCount, row, cell, i;
   var a = new Array();
   var name;
   
@@ -268,30 +342,47 @@ function userList_update() {
   a.sort();
   
   // Create a new User List
-  rowsCount = userList.rows.length;
-  j = rowsCount - 1;
   for (i = 0; i < userCount; i++) {
-    row = userList.insertRow(j); // Pre-Last
+    row = userList.insertRow(i); // Pre-Last
     cell = row.insertCell(0);
-    cell.innerHTML = '<a class=\'user\' onClick=\'clickUser(this)\'>' + a[i] + '</a>';
-    cell.style.fontSize = '12px';
-    cell.style.color = '#003311';
-    cell.style.verticalAlign = 'top';
-    cell.style.paddingLeft = '5px';
-    cell.style.paddingRight = '5px';
-    cell.style.paddingTop = '2px';
-    cell.style.paddingBottom = '2px';
-    cell.style.wordBreak = "break-all";
     cell.className = 'user';
-    j++;
+    cell.innerHTML = '<a class=\'user\' onClick=\'clickUser(this)\'>' + a[i] + '</a>';
   }
 }
 
 //------------------------------------------------------------------------------
 
-function btn_exitClick() {
+function btnExitClick() {
 
   redirect_to_logout();
+}
+
+//------------------------------------------------------------------------------
+
+function btnExitOver() {
+
+  div_h1.className = 'layer_h1';
+}
+
+//------------------------------------------------------------------------------
+
+function btnExitOut() {
+
+  div_h1.className = 'hidden';
+}
+
+//------------------------------------------------------------------------------
+
+function btnNetwOver() {
+
+  div_h2.className = 'layer_h2';
+}
+
+//------------------------------------------------------------------------------
+
+function btnNetwOut() {
+
+  div_h2.className = 'hidden';
 }
 
 //------------------------------------------------------------------------------
@@ -329,31 +420,33 @@ function send_message() {
   var xreq = msg.length + ' ' + msg;
   var reply;
   
-  if (msg == '') {
+  if (msg === '') {
     return;
   }
   
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
+  xhttp.onreadystatechange = function() 
+  {
+    if (this.readyState == 4 && this.status == 200) 
+    {
        reply = this.responseText;
        if (reply == code_NotLoggedIn) 
        {
-	alert(error_NotLoggedIn);
+	alert(error_NotLoggedIn); //
 	redirect();
        } 
        else if (reply == code_BadPOSTdata) 
        {
-	alert(error_POSTdata);
+	alert(error_POSTdata); //
 	return;
        }
        else if (reply == code_EmptyMessage) 
        {
-	alert(error_EmptyMessage);
+	alert(error_EmptyMessage); //
 	return;
        }
        else if (reply == code_msgTooLong) 
        {
-	alert(error_LongMessage);
+	alert(error_LongMessage); //
 	return;
        }
        else if (reply == code_messageSent) 
@@ -381,22 +474,7 @@ function get_msgUpdate_delayed() {
 
 function set_styles() {
   
-  // Reminder: see also resize_elements() !
-  var y1 = (document.body.clientHeight - 90) + 'px'; // 30+50+(2*5), 
-  
-  div_messages.style.overflowY = 'scroll';
-  div_messages.style.overflowX = 'auto';
-  div_messages.style.width = '100%';
-  div_messages.style.height = y1;
-  
-  div_users.style.overflowY = 'scroll';
-  div_users.style.overflowX = 'auto';
-  div_users.style.width = '100%';
-  div_users.style.height = y1;
-  
-  col_userName.style.width = '25%';
-  col_userName.style.maxWidth = '25%';
-  
+  set_mu();
   input_msg.maxLength = msgMaxSize / 2; // msgMaxSize is in Bytes. Non-latin symbols take 2 bytes instead of 1.
 }
 
@@ -404,11 +482,17 @@ function set_styles() {
 
 function resize_elements() {
 
-  // Reminder: see also set_styles() !
-  div_messages.style.height = (document.body.clientHeight - 90) + 'px';
-  div_users.style.height = (document.body.clientHeight - 90) + 'px';
-  col_userName.style.width = '25%';
-  col_userName.style.maxWidth = '25%';
+  set_mu();
+}
+
+//------------------------------------------------------------------------------
+
+function set_mu() {
+
+  // Sets Sizes of Messages' and Users' divs
+  var y1 = (document.body.clientHeight - 90) + 'px'; // 30+50+(2*5), 
+  div_messages.style.height = y1;
+  div_users.style.height = y1;
 }
 
 //------------------------------------------------------------------------------
@@ -416,38 +500,182 @@ function resize_elements() {
 </script>
 
 <style>
-td.head {
-  background-color: #009933;
+
+html {
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+  border: none;
+  height: 100%;
+}
+
+body.body {
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+  border: none;
+  height: 100%;
+}
+
+div.layer_main {
+  position: relative;
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+  z-index: 1;
+  top: 0px;
+  left: 0px;
+  height: 100%
+}
+div.layer_h1 {
+  position: absolute;
+  z-index: 2;
+  top: 40px;
+  right: 10px;
+  width: 20%;
+  height: 30px;
+}
+div.layer_h2 {
+  position: absolute;
+  z-index: 2;
+  top: 40px;
+  right: 10px;
+  width: 20%;
+  height: 30px;
+}
+div.hidden {
+  display: none;
+}
+div.msg {
+  overflow-y: scroll;
+  overflow-x: auto;
+  width: 100%;
+}
+div.usr {
+  overflow-y: scroll;
+  overflow-x: auto;
+  width: 100%;
+}
+
+table.container {
+  padding: 0px 0px 0px 0px;
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0px 0px;
+  width: 100%;
+  height: 100%;
+}
+table.hint1 {
+  padding: 0px 0px 0px 0px;
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0px 0px;
+  width: 100%;
+  height: 100%;
+  background-color: red;
   color: #ffffff;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  vertical-align: middle;
+}
+table.hint2 {
+  padding: 0px 0px 0px 0px;
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0px 0px;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  color: #000000;
+  font-size: 16px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+tr.drk {
+  background-color: #d9f2d9;
+  vertical-align: top;
+}
+tr.lig {
+  background-color: #ecf8ec;
+  vertical-align: top;
+}
+
+td.container {
+  padding: 0px 0px 0px 0px;
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0px 0px;
+  width: 100%;
+  height: 100%;
+}
+td.head_1 {
+  width: auto;
+  height: 30px;
   padding-left: 15px;
-  padding-right: 0px;
+  padding-right:15px;
+  padding-top: 0px;
+  padding-bottom: 0px;
   vertical-align: middle;
   font-size: 16px;
   font-weight: bold;
+  background-color: #009933;
+  color: #ffffff;
+}
+td.head_2 {
+  width: 100%;
+  height: 9px;
+  padding-left: 15px;
+  padding-right:0px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  vertical-align: middle;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #009933;
+  color: #ffffff;
+}
+td.head_btns {
+  width: 100%;
+  height: 12px;
+  padding: 0px 0px 0px 0px;
+  vertical-align: middle;
+  font-size: 10px;
+  background-color: #009933;
 }
 td.foot {
   height: 60px;
   background-color: #009933;
   color: #ffffff;
-  padding: 0px;
+  padding: 0px 0px 0px 0px;
   vertical-align: middle;
   text-align: center;
   font-size: 16px;
   font-weight: bold;
 }
-td.users {
-  background-color: #b3e5b3;
-  color: #003311;
+td.f_1 {
+  height:5px;
+  width: 5px;
+  padding: 0px 0px 0px 0px;
+}
+td.f_2 {
+  height:50px;
+  width: 5px;
+  padding: 0px 0px 0px 0px;
 }
 td.messages {
+  padding: 0px 0px 0px 0px;
   background-color: #ecf8ec;
+  width: 80%;
+  height: 100%;
 }
-textarea.x {
-  background-color: #ecf8ec;
-  font-size: 16px;
+td.users {
+  background-color: #b3e5b3;
+  padding: 0px 0px 0px 0px;
+  width: 20%;
+  height: 100%;
   color: #003311;
 }
 td.b_1 {
+  padding: 0px 0px 0px 0px;
   background-color: #ecf8ec;
   font-size: 20px;
   color: #003311;
@@ -459,6 +687,110 @@ td.b_1 {
 td.b_1:hover {
   background-color: #b3e5b3;
 }
+td.user {
+  font-size: 12px;
+  color: #003311;
+  vertical-align: top;
+  padding: 5px 5px 2px 2px;
+  word-break: break-all;
+  background-color: #b3e5b3;
+  cursor: pointer;
+}
+td.user:hover {
+  font-size: 12px;
+  color: #003311;
+  vertical-align: top;
+  padding: 5px 5px 2px 2px;
+  word-break: break-all;
+  background-color: #ecf8ec;
+}
+td.btn_exit {
+  font-size: 8px;
+  padding: 0px 0px 0px 0px;
+  background-color: #ecf8ec;
+  cursor: pointer;
+}
+td.btn_exit:hover {
+  font-size: 8px;
+  padding: 0px 0px 0px 0px;
+  background-color: #FF0000;
+  width: 12px;
+  height: 12px;
+}
+td.btn_netw_ok {
+  font-size: 8px;
+  padding: 0px 0px 0px 0px; 
+  background-color: #00ff00;
+}
+td.btn_netw_laggy {
+  font-size: 8px;
+  padding: 0px 0px 0px 0px;  
+  background-color: #ffff00;
+}
+td.btn_netw_slow {
+  font-size: 8px;
+  padding: 0px 0px 0px 0px;  
+  background-color: #FF8C00;
+}
+td.btn_netw_broken {
+  font-size: 8px;
+  padding: 0px 0px 0px 0px; 
+  background-color: #FF0000;
+}
+td.td_1 {
+  width: 5px;
+}
+td.h9 {
+  height: 9px;
+  padding: 0px 0px 0px 0px;
+}
+td.w9 {
+  width: 9px;
+}
+td.w12 {
+  min-width: 12px;
+  padding: 0px 0px 0px 0px;
+}
+td.h12 {
+  height: 12px;
+  padding: 0px 0px 0px 0px;
+  width: 100%;
+}
+td.air {
+  padding: 0px 0px 0px 0px;
+  height: 100%;
+}
+td.m1 {
+  font-size: 12px;
+  color: #308230;
+  padding: 5px 5px 2px 2px;
+  text-align: right;
+  word-break: break-all;
+  width: 25%;
+  max-width: 25%;
+}
+td.m2 {
+  width: 10px;
+  padding: 0px 0px 0px 0px;
+}
+td.m3 {
+  font-size: 14px;
+  color: #153815;
+  padding: 5px 5px 2px 2px;
+  text-align: left;
+  word-break: break-all;
+}
+
+textarea.x {
+  background-color: #ecf8ec;
+  font-size: 16px;
+  color: #003311;
+  width: 99%;
+  height: 50px;
+  margin: 0px 0px 0px 0px;
+  padding: 0px 0px 0px 0px;
+}
+
 a.send {
   display: block;
   width: 100%;
@@ -466,71 +798,106 @@ a.send {
   vertical-align: middle;
   line-height:50px;
 }
-td.user {
-  background-color: #b3e5b3;
-  cursor: pointer;
-}
-td.user:hover {
-  background-color: #ecf8ec;
-}
 a.user {
   display: block;
   width: 100%;
 }
-td.btn_exit {
-  background-color: #ecf8ec;
-  cursor: pointer;
-}
-td.btn_exit:hover {
-  background-color: #FF0000;
-  font-size: 1px;
-}
 a.exit {
   display: block;
-  width: 100%;
-  height: 100%;
+  width: 12px;
+  height: 12px;
 }
+a.netw {
+  display: block;
+  width: 12px;
+  height: 12px;
+}
+
 </style>
 
 </head>
-<body onLoad='init()' onResize='resize_elements()' marginwidth='0' leftmargin='0' rightmargin='0' marginheight='0' topmargin='0' bottommargin='0'>
-<table id='container' cellpadding='0' cellspacing='0' width='100%' height='100%'>
+<body class='body' onLoad='init()' onResize='resize_elements()'>
+<div id='div_layer_main' class='layer_main'>
+<table id='container' class='container'>
 <tr>
-<td width='80%' height='30' class='head' id='td_head'></td>
-<td width='20%' class='head'>
-  <table cellpadding='0' cellspacing='0' width='100%' height='100%'>
-    <tr><td height='9'></td><td width='12'></td><td width='9'></td></tr>
-    <tr><td height='12'></td><td class='btn_exit'><a class='exit' onClick='btn_exitClick()'> </a></td><td></td></tr>
-    <tr><td height='9'></td><td></td><td></td></tr>
+<td colspan='2' class='container'>
+  <table class='container'>
+    <tr>
+      <td id='td_head' class='head_1' rowspan='3'></td>
+      <td class='head_2'></td>
+    </tr>
+    <tr>
+      <td class='head_btns'>
+	
+	<table class='container'>
+	<tr>
+	  <td class='h12'></td>
+	  <td id='netw_indicator' class='btn_netw_ok'>
+	    <a class='netw' onMouseOver='btnNetwOver()' onMouseOut='btnNetwOut()'> </a>
+	  </td>
+	  <td class='w12'></td>
+	  <td class='btn_exit'>
+	    <a class='exit' onClick='btnExitClick()' onMouseOver='btnExitOver()' onMouseOut='btnExitOut()'> </a>
+	  </td>
+	  <td class='w12'></td>
+	</tr>
+	</table>
+	
+      </td>
+    </tr>
+    <tr>
+      <td class='head_2'></td>
+    </tr>
   </table>
 </td>
 </tr>
+
 <tr>
-<td width='80%' height='100%' class='messages'>
-  <div id='messages'>
-    <table id='chat' cellpadding='0' cellspacing='0' width='100%'>
-    <tr><td id='col_userName'></td><td style='width:5px;'></td><td></td></tr>
+<td class='messages'>
+  <div id='div_messages' class='msg'>
+    <table id='chat' class='container'>
+    <tr><td class='air' colspan='3'></td></tr>
     </table>
   </div>
 </td>
-<td width='20%' class='users'>
-  <div id='users'>
-    <table id='userList' cellpadding='0' cellspacing='0' width='100%' height='100%'>
-      <tr><td height='100%' width='100%'></td></tr>
+<td class='users'>
+  <div id='div_users' class='usr'>
+    <table id='userList' class='container'>
+      <tr><td class='air'></td></tr>
     </table>
   </div>
 </td>
 </tr>
-<tr><td class='foot'><form name='form_1' style='display:inline;'>
-<textarea id='input_msg' wrap='soft' style='width:99%;height:50px;margin:0px;padding:0px;' class='x' onKeyDown='input_msg_keyDown(event)'></textarea></form>
+
+<tr>
+<td class='foot'><form name='form_1' style='display:inline;'>
+<textarea id='input_msg' class='x' onKeyDown='input_msg_keyDown(event)' wrap='soft'></textarea></form>
 </td>
 <td class='foot'>
-  <table cellpadding='0' cellspacing='0' width='100%' height='100%'>
-    <tr><td height='5' width='5'></td><td></td><td height='5' width='5'></td></tr>
-    <tr><td height='50' width='5'></td><td id='b_1' class='b_1'><a class='send' onClick='btn_send()'>SEND</a></td><td height='50' width='5'></td></tr>
-    <tr><td height='5' width='5'></td><td></td><td height='5' width='5'></td></tr>
+  <table class='container'>
+    <tr><td class='f_1'></td><td></td><td class='f_1'></td></tr>
+    <tr>
+      <td class='f_2'></td><td id='b_1' class='b_1'><a class='send' onClick='btn_send()'>SEND</a></td>
+      <td class='f_2'></td></tr>
+    <tr><td class='f_1'></td><td></td><td class='f_1'></td></tr>
   </table>
-</td></tr>
+</td>
+</tr>
+
 </table>
+</div>
+
+<div id='div_h1' class='hidden'>
+  <table class='hint1'><tr><td>Quit Chat</td></tr>
+  </table>
+</div>
+
+<div id='div_h2' class='hidden'>
+  <table class='hint2'><tr><td id='div_h2_td'></td></tr>
+  </table>
+</div>
+
 </body>
 </html>
+
+<!-- Powered by the Web Chat «SAGA MIKRON» -->

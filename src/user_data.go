@@ -33,12 +33,13 @@ const file_userData_default = "dat/user.dat" // Path to File with User Data
 // Lists
 var userDataList tUserDatas
 
-// Path to File
+// File
 var file_userData string
+var createUserDataFile bool // Should we create User Data File if it does not exist ?
 
 //------------------------------------------------------------------------------
 
-func userData_init() {
+func userData_init() (ok bool) {
 
 	// Reads the User-Data File (U.D.F.) into Memory.
 	// If the U.D.F. does not exist (e.g. at first Start), then a new U.D.F.
@@ -51,15 +52,20 @@ func userData_init() {
 	if err != nil {
 		if os.IsNotExist(err) {
 
-			// File not found, Create a new one
-			log.Println("Creating user data file", file_userData) //
-			userData_create(&file_userData)
+			// File not found, Create a new one ?
+			if createUserDataFile {
+				userData_create(&file_userData)
+			} else {
+
+				log.Println("User Data File not found.", file_userData) //
+				return false
+			}
 
 		} else {
 
 			// Other Error
 			log.Println("Error with File Stat", file_userData) //
-			return
+			return false
 		}
 	}
 
@@ -68,10 +74,11 @@ func userData_init() {
 	if ptr == nil {
 
 		log.Println("Error getting userData") //
-		return
+		return false
 	}
 
 	userDataList = *ptr
+	return true
 }
 
 //------------------------------------------------------------------------------
