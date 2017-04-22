@@ -310,6 +310,17 @@ function clickUser(obj) {
 
 //------------------------------------------------------------------------------
 
+function input_msg_keyDown(e) {
+
+  if (e.keyCode == 13) { // enter
+    e.stopPropagation();
+    e.preventDefault();
+    btn_send();
+  }
+}
+
+//------------------------------------------------------------------------------
+
 function send_message() {
 
   var msg = input_msg.value;
@@ -511,7 +522,7 @@ a.exit {
 </td>
 </tr>
 <tr><td class='foot'><form name='form_1' style='display:inline;'>
-<textarea id='input_msg' wrap='soft' style='width:99%;height:50px;margin:0px;padding:0px;' class='x'></textarea></form>
+<textarea id='input_msg' wrap='soft' style='width:99%;height:50px;margin:0px;padding:0px;' class='x' onKeyDown='input_msg_keyDown(event)'></textarea></form>
 </td>
 <td class='foot'>
   <table cellpadding='0' cellspacing='0' width='100%' height='100%'>
