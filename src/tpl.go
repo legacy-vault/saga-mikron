@@ -19,6 +19,7 @@ const file_chat_default = "tpl/chat.html"                      // Path to Chat P
 const file_userRegistered_default = "tpl/user_registered.html" // Path to 'User Registered' Page Template
 const tpl_sep = "//#//"                                        // Separator of variable Part
 
+// These are HTML-Parts for "small" Pages (Redirectors or Errors).
 const html_headTitle = "Chat" // Contents of the <head><title>...</title></head>
 const html_tdTitle = "Chat"   // Contents of the Upper-Left Corner Cell on Pages
 const html_1 = "<html><head><meta charset='utf-8'><title>" + html_headTitle + "</title></head>\n<body>\n"

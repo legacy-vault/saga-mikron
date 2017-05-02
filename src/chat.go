@@ -106,8 +106,11 @@ var flag_asqRevInt_ptr = flag.Int("asqri", asq_revisor_interval_default,
 var chatRecordsList tChatRecords
 
 // Internal Parameters
-var chat_recordFirstNum uint16      // Index of the Firts actual Element in List (Array)
-var chat_recordLastNum uint16       // Index of the Last actual Element in List (Array)
+var chat_recordFirstNum uint16 // Index of the Firts actual Element in List (Array)
+var chat_recordLastNum uint16  // Index of the Last actual Element in List (Array)
+// The Counters can not be different from un-signed Integer Type (uint8, uint16,
+// ...), as we need an Overflow to be present to simulate the endless List.
+
 var chat_recordFirstTimestamp int64 // Timestamp of the First actual Element in List (Array)
 var chat_recordLastTimestamp int64  // Timestamp of the Last actual Element in List (Array)
 // It may first seem that Timestamps are a waste of Resources, but it is not.
@@ -120,9 +123,6 @@ var chat_recordLastTimestamp int64  // Timestamp of the Last actual Element in L
 // restore the Messages which he has missed.
 
 var firstCircle bool // Shows whether any Overflow happened or not
-// This Counter can not be different from un-signed Integer Type (uint8, uint16,
-// ...), as we need an Overflow to be present to simulate the endless List
-// (Array).
 
 // Channels
 var chatManagerChan chan tChatJob
