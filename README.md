@@ -22,7 +22,7 @@ The client part has a network indicator which shows average "ping" to the server
 
 ## Usage
 
-The program needs a database of users to operate. When you first run the program or wish to create a new database file, use '-cudf' option. This means "Create User Data File". In normal situation you don't need to use `-cudf`.
+The program needs a database of users to operate. When you first run the program or wish to create a new database file, use `-cudf` option. This means "Create User Data File". In normal situation you don't need to use `-cudf`.
 
 To show the list of available command line parameters, use `-h`.
 
