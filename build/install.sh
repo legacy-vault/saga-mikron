@@ -11,4 +11,5 @@ mv src ../build/saga-mikron
 cp -R tpl ../build/tpl
 cp -R ver ../build/ver
 cp -R dat ../build/dat
+rm ../build/dat/.gitignore
 echo "Compilation has finished. Have a good day :)"
