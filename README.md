@@ -22,9 +22,9 @@ The client part has a network indicator which shows average "ping" to the server
 
 ## Usage
 
-The program needs a database of users to operate. When you first run the program or wish to create a new database file, use '-cudf' option. This means "Create User Data File". In normal situation you don't need to use '-cudf'.
+The program needs a database of users to operate. When you first run the program or wish to create a new database file, use '-cudf' option. This means "Create User Data File". In normal situation you don't need to use `-cudf`.
 
-To show the list of available command line parameters, use '-h'.
+To show the list of available command line parameters, use `-h`.
 
 The default settings are wise enough to make chat working and keep both network and server in good condition. Note that setting revisor intervals to values less than 1 (one second) will raise network traffic consumption and server's CPU load greatly, so, please, do not overoptimize :)
 
