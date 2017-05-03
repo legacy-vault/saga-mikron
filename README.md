@@ -26,7 +26,7 @@ The program needs a database of users to operate. When you first run the program
 
 To show the list of available command line parameters, use `-h`.
 
-The default settings are wise enough to make chat working and keep both network and server in good condition. Note that setting revisor intervals to values less than 1 (one second) will raise network traffic consumption and server's CPU load greatly, so, please, do not overoptimize :)
+The default settings are wise enough to make chat working and keep both network and server in good condition. Note that setting revisor intervals to values less than 1 (one second) and setting clients' update intervals to very low values will raise server's CPU load, so, please, do not over-optimize :)
 
 
 ## License
