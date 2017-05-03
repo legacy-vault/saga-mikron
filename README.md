@@ -13,13 +13,21 @@ The client part has a network indicator which shows average "ping" to the server
 
 ## Download & Installation
 
-1. open terminal
-2. cd <to_your_working_dir>
-3. git clone https://github.com/legacy-vault/saga-mikron
-4. inside folder "saga-mikron/src" create folder "dat"
-5. open .go files with your Go IDE
-6. compile
-7. have fun
+1. install golang from `https://golang.org`;
+2. open terminal and `cd` <to_your_working_dir>
+3. `git clone https://github.com/legacy-vault/saga-mikron`
+4. `cd saga-mikron/build`
+5. `./install.sh`
+6. now you can run the program. 
+
+## Usage
+
+The program needs a database of users to operate. When you first run the program or wish to create a new database file, use '-cudf' option. This means "Create User Data File". In normal situation you don't need to use '-cudf'.
+
+To show the list of available command line parameters, use '-h'.
+
+The default settings are wise enough to make chat working and keep both network and server in good condition. Note that setting revisor intervals to values less than 1 (one second) will raise network traffic consumption and server's CPU load greatly, so, please, do not overoptimize :)
+
 
 ## License
 

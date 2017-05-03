@@ -222,7 +222,7 @@ func (srv *tServer) stop() {
 	loginManagerQuit <- 1
 	registerManagerQuit <- 1
 
-	log.Println("Server Stopped.\n") //
+	log.Print("Server Stopped.\n\n") //
 }
 
 //------------------------------------------------------------------------------

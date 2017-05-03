@@ -43,7 +43,6 @@ const activeJobUpdateUser = 2  // Action Code for Active Manager to Update User'
 const activeJobGetUser = 3     // Action Code for Active Manager to Get User's Information
 const activeJobGetList = 4     // Action Code for Active Manager to Get List of active Clients
 const activeJobUpdateCache = 5 // Action Code for Active Manager to update the cached List (in JSON Format)
-//const activeJobResetLMID = 6   // Action Code for Active Manager to Reset All-User's LMID
 
 //------------------------------------------------------------------------------
 

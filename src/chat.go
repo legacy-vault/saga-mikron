@@ -4,8 +4,8 @@
 
 	Web Chat «SAGA MIKRON».
 
-	Version: 0.4.
-	Date of Creation: 2017-04-23.
+	Version: 0.4.1.
+	Date of Creation: 2017-05-03.
 	Author: McArcher.
 
 	This is a simple web Chat.
