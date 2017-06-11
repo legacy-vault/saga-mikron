@@ -4,8 +4,8 @@
 
 	Web Chat «SAGA MIKRON».
 
-	Version: 0.4.1.
-	Date of Creation: 2017-05-03.
+	Version: 0.5.
+	Date of Creation: 2017-06-11.
 	Author: McArcher.
 
 	This is a simple web Chat.
@@ -71,9 +71,11 @@ const loginManagerChanBufferLen = 64        // Buffer Length of the Login Manage
 const registerManagerChanBufferLen = 64     // Buffer Length of the Register Manager's Channel
 
 // Size Limits
-const chat_recordsMaxLast = math.MaxUint16 // Maximum Number of the Last Chat Message
-// This Limit can not be different from uint's Limit, as we need an Overflow to
-// be present to simulate the endless List (Array)
+
+// Maximum Number of the Last Chat Message. This Limit can not be different from
+// uint's Limit, as we need an Overflow to be present to simulate the endless
+// List (Array).
+const chat_recordsMaxLast = math.MaxUint16
 
 //------------------------------------------------------------------------------
 
@@ -96,10 +98,10 @@ var flag_chatFile_ptr = flag.String("cf", file_chat_default,
 var flag_userRegdFile_ptr = flag.String("urf", file_userRegistered_default,
 	"Path to 'User Registered' File Template.")
 
-var flag_ari_ptr = flag.Int("ari", activityRevisorInterval_default,
+var flag_ari_ptr = flag.Int("ari", activeRevisorInterval_default,
 	"Activity Revisor Interval, in Seconds.")
 
-var flag_asqRevInt_ptr = flag.Int("asqri", asq_revisor_interval_default,
+var flag_asqRevInt_ptr = flag.Int("asqri", asqRevisorIntervalDefault,
 	"Anti-Spam Questions Revisor Interval, in Seconds.")
 
 // Lists
@@ -115,14 +117,14 @@ var chat_recordFirstTimestamp int64 // Timestamp of the First actual Element in 
 var chat_recordLastTimestamp int64  // Timestamp of the Last actual Element in List (Array)
 // It may first seem that Timestamps are a waste of Resources, but it is not.
 // If by the means of an Accident a Client loses connection to the Server, and
-// the Server's Sessioun Timeout Parameter is set to a large Value, and at the
-// same Time an extremely great Activity starts in Chat, the "lmid" of a User
-// may become literally outdated when new Flood of Messages makes a fuul Circle
+// the Server's Session Timeout Parameter is set to a large Value, and at the
+// same Time an extremely great Activity starts in Chat, the "req_mid" of a User
+// may become literally outdated when new Flood of Messages makes a full Circle
 // in the List and re-writes the last seen Message. In such Case, Timestamps
 // can help such Client (when he fixes his Network Connection) to partially
 // restore the Messages which he has missed.
 
-var firstCircle bool // Shows whether any Overflow happened or not
+var firstCircle bool // Shows whether any Overflow (Circle) happened or not
 
 // Channels
 var chatManagerChan chan tChatJob
@@ -186,8 +188,8 @@ func flags_init() {
 	file_userRegdTemplate = *flag_userRegdFile_ptr
 
 	// Revisors
-	activityRevisorInterval = *flag_ari_ptr
-	asq_revisorInterval = *flag_asqRevInt_ptr
+	activeRevisorInterval = *flag_ari_ptr
+	asqRevisorInterval = *flag_asqRevInt_ptr
 }
 
 //------------------------------------------------------------------------------
@@ -234,11 +236,12 @@ func chatManager() {
 		now = time.Now().Unix()
 		job.chatRecord.time = now
 
-		// Manipulate Counters & put Message into List
+		// First Circle?
 		if chat_recordLastNum == chat_recordsMaxLast {
 			firstCircle = false
 		}
 
+		// Manipulate Counters (Start-End Pointers) and their Timestamps
 		chat_recordLastNum++ // Automatic Overflow makes it "endless"
 
 		if firstCircle { // First Circle
@@ -254,6 +257,8 @@ func chatManager() {
 			chat_recordFirstTimestamp = chatRecordsList[chat_recordFirstNum].time
 
 		}
+
+		// Add Message to the List
 		chatRecordsList[chat_recordLastNum] = job.chatRecord
 
 		job.returnChannel <- job // Send back
@@ -319,8 +324,8 @@ func loginManager() {
 
 			activeClient.log_mid = chat_recordLastNum // 0 at Server's Start
 
-			// Update List
-			activeClientsList[job.uid] = *activeClient // it is thread-safe
+			// Update List of active Clients
+			activeClientsList[job.uid] = *activeClient // this is thread-safe
 			// Notes:
 			// Only the "loginManager" can add new Clients to the  List.
 			// As we are sure that UID is unique (not logged-in), it is not read

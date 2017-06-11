@@ -7,7 +7,6 @@ import (
 	"encoding/binary"
 	"io"
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
@@ -288,13 +287,13 @@ func userData_creatSysUser(fileName *string) {
 	var err error
 
 	// Prepare Data
-	rnd_len = uint8(rand.Uint32())
+	rnd_len = generateRandomUint8()
 	if rnd_len < 127 {
 		rnd_len += 128
 	}
 	buf = make([]byte, rnd_len)
 	for i = 0; i < rnd_len; i++ {
-		x = uint8(rand.Uint32())
+		x = generateRandomUint8()
 		buf[i] = x
 	}
 	pwd = string(buf)
@@ -415,7 +414,7 @@ func user_register(name, pwd *string) (ok bool, uid uint64) {
 
 	// Generating random UID
 	for exists {
-		tmp_uid = rand.Uint64()
+		tmp_uid = generateRandomUint64()
 		_, exists = userDataList[tmp_uid]
 		if !exists {
 			// found free UID
@@ -533,7 +532,7 @@ func user_check(w http.ResponseWriter, req *http.Request) (cookies_ok bool, user
 
 	// Really active or Revisor is sleeping ?
 	timeInactive = time.Now().Unix() - activeJob.client.lastActiveTime // instead of thread-unsafe: activeClientsList[uid].lastActiveTime
-	if timeInactive <= idleTimeout {
+	if timeInactive <= userIdleTimeout {
 
 		// User is active
 		// Update last Activity Time -> activeManager

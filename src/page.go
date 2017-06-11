@@ -8,7 +8,6 @@ import (
 	"html"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"net/http"
 	"strconv"
 	"strings"
@@ -71,7 +70,7 @@ func page_delta(w http.ResponseWriter, req *http.Request) {
 	req_mid_str = req.PostFormValue(param_req_mid)
 	req_ts_str = req.PostFormValue(param_req_ts)
 
-	// Empty LMS /////////////////////////////////////////
+	// Empty LMS
 	if (len(req_mid_str) == 0) || (len(req_ts_str) == 0) {
 		log.Println("Empty Request.")  //
 		fmt.Fprint(w, code_BadRequest) // Bad Request
@@ -98,6 +97,7 @@ func page_delta(w http.ResponseWriter, req *http.Request) {
 	req_mid = uint16(req_mid_uint64)
 	req_ts = int64(req_ts_uint64)
 
+	// Any News?
 	if chat_recordLastTimestamp < req_ts {
 
 		fmt.Fprint(w, code_NoNews) // No News
@@ -159,7 +159,7 @@ func page_delta(w http.ResponseWriter, req *http.Request) {
 					{"mid":"125", "tim":"00", "atr":"Коля", "txt":"CU8Xv745cd=="}
 				],
 		 "x":
-				{"mid":"123", "ts":"1234567"}
+				{"mid":"125", "ts":"1234567"}
 		}
 	*/
 
@@ -185,7 +185,7 @@ func page_delta(w http.ResponseWriter, req *http.Request) {
 	i = outMsgFirst
 	for {
 
-		// Write all but except the last Message
+		// Write all except the last Message
 		if i >= outMsgLast {
 			break
 		}
@@ -508,7 +508,7 @@ func page_login(w http.ResponseWriter, req *http.Request) {
 
 	// Check Question Timeout
 	delay = time.Now().Unix() - asqJob.asq.timeOfCreation // instead of thread-unsafe: asqsList[qid].timeOfCreation
-	if delay > asq_timeout {
+	if delay > asqTimeout {
 		fmt.Fprintf(w, "%sLogging failed.<br>The Answer is outdated.<br>Click <a href='%s'>here</a> to return to main Page.%s",
 			html_1, path_index, html_2) //
 		return
@@ -533,7 +533,7 @@ func page_login(w http.ResponseWriter, req *http.Request) {
 
 	// Create SID
 	// SID may be not unique, because Key in activeClients Map is UID, not SID.
-	sid = rand.Uint32()
+	sid = generateRandomUint32()
 	sid_str = fmt.Sprintf("%d", sid)
 	sid_b64 = base64.StdEncoding.EncodeToString([]byte(sid_str))
 
@@ -765,7 +765,7 @@ func page_register(w http.ResponseWriter, req *http.Request) {
 
 	// Check Question Timeout
 	delay = time.Now().Unix() - asqJob.asq.timeOfCreation // instead of thread-unsafe: asqsList[qid].timeOfCreation
-	if delay > asq_timeout {
+	if delay > asqTimeout {
 		fmt.Fprintf(w, "%sRegistration failed.<br>The Answer is outdated.<br>Click <a href='%s'>here</a> to return to main Page.%s",
 			html_1, path_index, html_2) //
 		return
@@ -840,8 +840,7 @@ func page_asq(w http.ResponseWriter, req *http.Request) {
 	// {"qid":"123","msg":"AbRaKaDaBrA="}
 	fmt.Fprint(w, "{\"qid\":\"", qid, "\",\"msg\":\"", msg, "\"}")
 
-	// While this ASQ has just been created, ASQ Revisor is unlikely to delete
-	// it. Then it is safe to change ASQ directly.
+	// Clear Question Data from ASQ
 	asq_clearQuestionData(qid)
 }
 

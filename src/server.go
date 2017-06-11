@@ -272,7 +272,7 @@ func httpHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// Creating a Job
-	rcvChan = make(chan tServerJob) // Channel, from which Reply comes to us
+	rcvChan = make(chan tServerJob)
 	job = new(tServerJob)
 	job.actionType = actionNum
 	job.req = req

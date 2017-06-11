@@ -35,18 +35,18 @@ type tAsqJob struct {
 
 //------------------------------------------------------------------------------
 
-const asq_revisor_interval_default = 120 // Interval for Monitoring Anti-Spam Questions, in Seconds
-const asq_timeout = 60                   // Questions older than this Value are thrown out, in Seconds
-const asqManagerChanBufferLen = 64       // Buffer Length of the ASQ Manager's Channel
-const asqJobGet = 1                      // Action Code for ASQ Manager to Get ASQ
-const asqJobSet = 2                      // Action Code for ASQ Manager to Set ASQ
-const asqJobDelete = 3                   // Action Code for ASQ Manager to Delete ASQ
-const asqJobClearData = 4                // Action Code for ASQ Manager to Clear Question in ASQ
+const asqRevisorIntervalDefault = 120 // Interval for Monitoring Anti-Spam Questions, in Seconds
+const asqTimeout = 60                 // Questions older than this Value are thrown out, in Seconds
+const asqManagerChanBufferLen = 64    // Buffer Length of the ASQ Manager's Channel
+const asqJobGet = 1                   // Action Code for ASQ Manager to Get ASQ
+const asqJobSet = 2                   // Action Code for ASQ Manager to Set ASQ
+const asqJobDelete = 3                // Action Code for ASQ Manager to Delete ASQ
+const asqJobClearData = 4             // Action Code for ASQ Manager to Clear Question in ASQ
 
 //------------------------------------------------------------------------------
 
 // Internal Parameters
-var asq_revisorInterval int
+var asqRevisorInterval int
 
 // Lists
 var asqsList tAntiSpamQuestions
@@ -75,9 +75,9 @@ func asq_create() (qid uint64) {
 
 		// Random Key for Map, Must be Unique
 		exists = true
-		qid = rand.Uint64()
 		for {
-			qid = rand.Uint64()
+
+			qid = generateRandomUint64()
 			_, exists = asqsList[qid]
 			if !exists {
 				break
@@ -156,7 +156,7 @@ func asq_createData(asq *tAntiSpamQuestion) {
 
 	for i = 1; i <= n; i++ {
 		op = op_min + uint8(rand.Intn(int(op_rnd)))
-		col = color.RGBA{uint8(rand.Uint32()), uint8(rand.Uint32()), uint8(rand.Uint32()), op}
+		col = color.RGBA{generateRandomUint8(), generateRandomUint8(), generateRandomUint8(), op}
 		gc.SetFillColor(col)
 		gc.SetStrokeColor(col)
 		r = r_min + rand.Intn(r_rnd)
@@ -231,7 +231,7 @@ func asqRevisor() {
 
 		// Starting Job
 		now = time.Now().Unix()
-		criterion = now - asq_timeout
+		criterion = now - asqTimeout
 
 		// For Each active Client
 		for i, v = range asqsList {
@@ -262,7 +262,7 @@ func asqRevisor() {
 		}
 
 		// Wait for next Job
-		time.Sleep(time.Second * time.Duration(asq_revisorInterval))
+		time.Sleep(time.Second * time.Duration(asqRevisorInterval))
 	}
 }
 
@@ -281,12 +281,14 @@ func asqManager() {
 
 	for loop {
 
-		*job = <-asqManagerChan // Get Job from Channel
+		// Get Job from Channel
+		*job = <-asqManagerChan
 
-		if job.action == asqJobSet { // Set
+		if job.action == asqJobSet {
 
-			// QID in Job shows which ASQ to create. Fields "answer" and
-			// "quesion" are provided by the Sender.
+			// Add an ASQ to the List of ASQs (if it does not already exist).
+			// QID in Job shows which ASQ to create.
+			// Fields "answer" and "quesion" are provided by the Sender.
 
 			// Set
 			_, exists = asqsList[job.qid]
@@ -298,10 +300,11 @@ func asqManager() {
 				job.result = false
 			}
 
-		} else if job.action == asqJobGet { // Get
+		} else if job.action == asqJobGet {
 
-			// QID in Job shows which ASQ to return to Sender. Manager returns
-			// asq in Job.
+			// Get an ASQ from the ASQ List (if it exists).
+			// QID in Job shows which ASQ to return to Sender.
+			// Manager returns asq in Job.
 
 			// Get
 			_, exists = asqsList[job.qid]
@@ -314,8 +317,9 @@ func asqManager() {
 				job.result = false
 			}
 
-		} else if job.action == asqJobDelete { // Delete
+		} else if job.action == asqJobDelete {
 
+			// Delete an ASQ from the ASQ List.
 			// QID in Job shows which ASQ to delete.
 
 			// Delete
@@ -325,19 +329,21 @@ func asqManager() {
 			}
 			job.result = true
 
-		} else if job.action == asqJobClearData { // Clear Question
+		} else if job.action == asqJobClearData {
 
+			// Clear Question Data from the ASQ (to save Space).
+			// The Answer is not cleared.
 			// QID in Job shows which ASQ to clear. Other Fields are not known,
 			// are taken from asqsList and returned to Sender.
 
-			// Clear Question
+			// Clear Question Data
 			_, exists = asqsList[job.qid]
 			if exists {
 
 				tmp_asq = new(tAntiSpamQuestion)
-				tmp_asq.answer = asqsList[job.qid].answer
-				tmp_asq.question = []byte{} // "clearing" Data
-				tmp_asq.timeOfCreation = asqsList[job.qid].timeOfCreation
+				tmp_asq.answer = asqsList[job.qid].answer                 // save Answer
+				tmp_asq.question = []byte{}                               // "clearing" Data
+				tmp_asq.timeOfCreation = asqsList[job.qid].timeOfCreation // save toc
 				asqsList[job.qid] = *tmp_asq
 				job.result = true
 			} else {

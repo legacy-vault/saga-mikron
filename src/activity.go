@@ -34,9 +34,9 @@ type tActiveJob struct {
 
 //------------------------------------------------------------------------------
 
-const activityRevisorInterval_default = 30 // Interval for Monitoring Active Clients, in Seconds
-const idleTimeout = 120                    // Idle Client Timeout, in Seconds
-const activeManagerChanBufferLen = 64      // Buffer Length of the Active Manager's Channel
+const activeRevisorInterval_default = 30 // Interval for Monitoring Active Clients, in Seconds
+const userIdleTimeout = 120              // Idle Client Timeout, in Seconds
+const activeManagerChanBufferLen = 64    // Buffer Length of the Active Manager's Channel
 
 const activeJobDelete = 1      // Action Code for Active Manager to Delete User from List
 const activeJobUpdateUser = 2  // Action Code for Active Manager to Update User's L.A.T.
@@ -47,7 +47,7 @@ const activeJobUpdateCache = 5 // Action Code for Active Manager to update the c
 //------------------------------------------------------------------------------
 
 // Internal Parameters
-var activityRevisorInterval int
+var activeRevisorInterval int
 
 // Lists
 var activeClientsList tActiveClients
@@ -74,7 +74,6 @@ func activeRevisor() {
 	// Preparations
 	rcvChan = make(chan tActiveJob)
 	activeJob = new(tActiveJob)
-	activeJob.action = activeJobDelete // Delete
 	activeJob.returnChannel = rcvChan
 
 	// Periodical Check for active Clients
@@ -82,8 +81,9 @@ func activeRevisor() {
 
 		// Starting Job
 		now = time.Now().Unix()
-		criterion = now - idleTimeout
-		count = 0 // Count of deleted Users
+		criterion = now - userIdleTimeout
+		count = 0                          // Count of deleted Users
+		activeJob.action = activeJobDelete // Delete
 
 		// For each active Client
 		for i, v = range activeClientsList {
@@ -126,7 +126,7 @@ func activeRevisor() {
 		}
 
 		// Wait for next Job
-		time.Sleep(time.Second * time.Duration(activityRevisorInterval))
+		time.Sleep(time.Second * time.Duration(activeRevisorInterval))
 	}
 }
 
@@ -172,11 +172,14 @@ func activeManager() {
 
 		} else if job.action == activeJobUpdateCache { // Update Cache
 
+			// Re-Create the List of active Users
 			// Output in JSON Format
 			buffer.WriteString("{\"names\":[")
 			count = len(activeClientsList)
 			cur = 1
 			for key, _ = range activeClientsList {
+
+				// Write next User
 				text = base64.StdEncoding.EncodeToString([]byte(userDataList[key].name))
 				if cur < count {
 					// not last
